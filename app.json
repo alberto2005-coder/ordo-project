@@ -9,16 +9,20 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "app.ordo.scanner.dev",
+      "bundleIdentifier": "app.ordoscanner.ordo",
+      "buildNumber": "1",
       "infoPlist": {
-        "CFBundleAllowMixedLocalizations": true
+        "CFBundleAllowMixedLocalizations": true,
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "app.ordo.scanner.dev",
+      "package": "app.ordoscanner.ordo",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#5b3a9e",
-        "foregroundImage": "./assets/android-icon-foreground.png"
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -28,14 +32,31 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "resizeMode": "contain",
+          "backgroundColor": "#5b3a9e",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#121014"
+          }
+        }
+      ],
+      "expo-system-ui",
       "expo-localization",
       "expo-sqlite",
       "expo-secure-store",
       "expo-local-authentication",
       [
         "react-native-document-scanner-plugin",
-        { "cameraPermission": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono." }
+        {
+          "cameraPermission": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono."
+        }
       ]
-    ]
+    ],
+    "primaryColor": "#5b3a9e"
   }
 }
