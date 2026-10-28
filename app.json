@@ -1,25 +1,41 @@
 {
   "expo": {
-    "name": "ordo",
+    "name": "Ordo",
     "slug": "ordo",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
+    "scheme": "ordo",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "app.ordo.scanner.dev",
+      "infoPlist": {
+        "CFBundleAllowMixedLocalizations": true
+      }
     },
     "android": {
+      "package": "app.ordo.scanner.dev",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#5b3a9e",
+        "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "locales": {
+      "es": "./src/i18n/native/es.json",
+      "en": "./src/i18n/native/en.json"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-localization",
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-local-authentication",
+      [
+        "react-native-document-scanner-plugin",
+        { "cameraPermission": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono." }
+      ]
+    ]
   }
 }
