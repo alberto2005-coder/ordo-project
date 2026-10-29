@@ -1,13 +1,21 @@
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument } from '@cantoo/pdf-lib';
+import type { AnnotationData } from '@/data/annotations';
+import { drawAnnotation, drawWatermark, loadFont } from './draw';
 
 export interface PageImage {
   bytes: Uint8Array;
   format: 'jpg' | 'png';
+  /** Drawings, text and signatures, drawn as vectors on top of the picture. */
+  annotations?: AnnotationData[];
 }
 export type PdfPageSize = 'A4' | 'Letter' | 'fit';
 export interface PdfOptions {
   pageSize: PdfPageSize;
   title?: string;
+  /** Opens only with this password. AES-256. Empty or missing means no encryption. */
+  password?: string;
+  /** Faint diagonal text over every page. */
+  watermark?: string;
 }
 
 // PDF points (1/72 inch).
@@ -24,6 +32,7 @@ export async function buildPdf(images: PageImage[], opts: PdfOptions): Promise<U
   pdf.setCreator('Ordo');
   if (opts.title) pdf.setTitle(opts.title);
 
+  const font = await loadFont(pdf);
   for (const img of images) {
     const embedded = img.format === 'png' ? await pdf.embedPng(img.bytes) : await pdf.embedJpg(img.bytes);
     let pageW: number;
@@ -41,7 +50,22 @@ export async function buildPdf(images: PageImage[], opts: PdfOptions): Promise<U
     const w = embedded.width * scale;
     const h = embedded.height * scale;
     const page = pdf.addPage([pageW, pageH]);
-    page.drawImage(embedded, { x: (pageW - w) / 2, y: (pageH - h) / 2, width: w, height: h });
+    const area = { x: (pageW - w) / 2, y: (pageH - h) / 2, width: w, height: h };
+    page.drawImage(embedded, area);
+    for (const a of img.annotations ?? []) drawAnnotation(page, area, a, font);
+    if (opts.watermark?.trim()) drawWatermark(page, opts.watermark, font);
+  }
+  if (opts.password) {
+    // The owner password is random and thrown away: nobody, including the app, can
+    // use it to lift the restrictions. Only the user's password opens the file.
+    const rnd = new Uint8Array(24);
+    crypto.getRandomValues(rnd);
+    pdf.encrypt({
+      userPassword: opts.password,
+      ownerPassword: Array.from(rnd, (b) => b.toString(16).padStart(2, '0')).join(''),
+      permissions: { printing: 'highResolution', copying: true, modifying: false, annotating: false },
+      algorithm: 'AES-256',
+    });
   }
   return pdf.save();
 }

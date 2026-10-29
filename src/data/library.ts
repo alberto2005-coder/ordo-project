@@ -15,6 +15,8 @@ export interface DocumentRow {
 export interface DocumentSummary extends DocumentRow {
   page_count: number;
   thumbnail_path: string | null;
+  /** 1 if the document, or the folder it is in, is locked. */
+  is_locked: number;
 }
 export interface PageRow {
   id: string;
@@ -24,6 +26,11 @@ export interface PageRow {
   processed_path: string;
   filter: Filter;
   rotation: number;
+  brightness: number;
+  contrast: number;
+  crop_corners: string | null;
+  ocr_text: string | null;
+  ocr_language: string | null;
 }
 export interface NewPage {
   originalPath: string;
@@ -35,6 +42,8 @@ export interface Settings {
   pdf_page_size: PdfPageSize;
   theme: 'system' | 'light' | 'dark';
   language: string;
+  onboarded: number;
+  biometrics_lock: number;
 }
 
 /** Local ids. Nothing leaves the phone, so a random v4-style id is enough. */
@@ -79,7 +88,7 @@ function likePattern(q: string): string {
 
 export async function listDocuments(
   db: Db,
-  opts: { query?: string; folderId?: string | null } = {},
+  opts: { query?: string; folderId?: string | null; tagId?: string } = {},
 ): Promise<DocumentSummary[]> {
   const where: string[] = [];
   const params: (string | number | null)[] = [];
@@ -88,16 +97,22 @@ export async function listDocuments(
     where.push('d.folder_id = ?');
     params.push(opts.folderId);
   }
+  if (opts.tagId) {
+    where.push('exists (select 1 from document_tags dt where dt.document_id = d.id and dt.tag_id = ?)');
+    params.push(opts.tagId);
+  }
   const q = opts.query?.trim();
   if (q) {
-    where.push("d.title like ? escape '\\'");
-    params.push(likePattern(q));
+    where.push("(d.title like ? escape '\\' or d.ocr_text like ? escape '\\')");
+    const pat = likePattern(q);
+    params.push(pat, pat);
   }
   return db.all<DocumentSummary>(
-    `select d.*,
+    `select d.id, d.title, d.folder_id, d.locked, d.created_at, d.updated_at,
             (select count(*) from pages p where p.document_id = d.id) as page_count,
             (select p.processed_path from pages p where p.document_id = d.id
-              order by p.position limit 1) as thumbnail_path
+              order by p.position limit 1) as thumbnail_path,
+            (d.locked or coalesce((select f.locked from folders f where f.id = d.folder_id), 0)) as is_locked
        from documents d
       ${where.length ? 'where ' + where.join(' and ') : ''}
       order by d.updated_at desc`,
@@ -128,6 +143,19 @@ export async function renameDocument(db: Db, id: string, title: string, now = ne
   ]);
 }
 
+/** Of these file paths, the ones no page refers to any more (safe to delete from disk). */
+export async function unreferenced(db: Db, paths: string[]): Promise<string[]> {
+  const out: string[] = [];
+  for (const p of new Set(paths)) {
+    const row = await db.first<{ n: number }>(
+      'select count(*) as n from pages where original_path = ? or processed_path = ?',
+      [p, p],
+    );
+    if (!row || row.n === 0) out.push(p);
+  }
+  return out;
+}
+
 /** Deletes the document and returns the image paths so the caller can remove the files. */
 export async function deleteDocument(db: Db, id: string): Promise<string[]> {
   const pages = await db.all<{ original_path: string; processed_path: string }>(
@@ -140,7 +168,7 @@ export async function deleteDocument(db: Db, id: string): Promise<string[]> {
     paths.add(p.original_path);
     paths.add(p.processed_path);
   });
-  return [...paths];
+  return unreferenced(db, [...paths]);
 }
 
 export async function addPages(db: Db, docId: string, pages: NewPage[], now = new Date()) {
@@ -193,7 +221,8 @@ export async function deletePage(db: Db, pageId: string): Promise<string[]> {
       'update pages set position = position - 1 where document_id = ? and position > ?',
       [page.document_id, page.position],
     );
-    return [...new Set([page.original_path, page.processed_path])];
+    await refreshDocumentText(db, page.document_id);
+    return unreferenced(db, [page.original_path, page.processed_path]);
   });
 }
 
@@ -206,10 +235,20 @@ export async function getSettings(db: Db): Promise<Settings> {
 export async function updateSettings(db: Db, patch: Partial<Settings>) {
   const keys = Object.keys(patch) as (keyof Settings)[];
   if (!keys.length) return;
-  const allowed = ['default_filter', 'export_quality', 'pdf_page_size', 'theme', 'language'];
+  const allowed = ['default_filter', 'export_quality', 'pdf_page_size', 'theme', 'language', 'onboarded', 'biometrics_lock'];
   if (keys.some((k) => !allowed.includes(k))) throw new Error('unknown setting');
   await db.run(
     `update settings set ${keys.map((k) => `${k} = ?`).join(', ')} where id = 1`,
     keys.map((k) => patch[k] as string),
   );
+}
+
+/** Rebuilds a document's searchable text from its pages' OCR text. */
+export async function refreshDocumentText(db: Db, docId: string) {
+  const rows = await db.all<{ ocr_text: string | null }>(
+    'select ocr_text from pages where document_id = ? order by position',
+    [docId],
+  );
+  const parts = rows.map((r) => r.ocr_text?.trim()).filter((t): t is string => !!t);
+  await db.run('update documents set ocr_text = ? where id = ?', [parts.length ? parts.join('\n\n') : null, docId]);
 }

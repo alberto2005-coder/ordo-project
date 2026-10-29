@@ -1,5 +1,16 @@
 // Generated from replica/schema.sql. Edit the SQL file, then regenerate.
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
+
+/** Version 2: first-run flag, vector signatures (replaces the unused image-based table). */
+export const MIGRATION_2 = `
+alter table settings add column onboarded integer not null default 0 check (onboarded in (0,1));
+drop table signatures;
+create table signature_strokes (
+  id         text primary key,
+  strokes    text not null,
+  created_at text not null
+);
+`;
 
 export const SCHEMA_SQL = `
 -- On-device SQLite schema (expo-sqlite). No server, no accounts.

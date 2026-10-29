@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument } from '@cantoo/pdf-lib';
 import { describe, expect, it } from 'vitest';
 import { buildPdf, type PageImage } from '../src/pdf/buildPdf';
 

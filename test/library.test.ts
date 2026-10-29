@@ -24,10 +24,15 @@ const pages = (n: number) =>
   Array.from({ length: n }, (_, i) => ({ originalPath: `file:///d/p${i}.jpg` }));
 
 describe('migrate', () => {
+  it('turns foreign keys on, so deleting a document removes its pages', async () => {
+    const fk = await db.first<{ foreign_keys: number }>('pragma foreign_keys');
+    expect(fk?.foreign_keys).toBe(1);
+  });
+
   it('creates the tables, sets the version, and is safe to run twice', async () => {
     await migrate(db);
     const v = await db.first<{ user_version: number }>('pragma user_version');
-    expect(v?.user_version).toBe(1);
+    expect(v?.user_version).toBe(2);
     const tables = await db.all<{ name: string }>(
       "select name from sqlite_master where type = 'table' order by name",
     );
