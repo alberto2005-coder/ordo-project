@@ -45,7 +45,7 @@ export async function getDocumentTags(db: Db, docId: string): Promise<string[]> 
 
 export async function listTags(db: Db): Promise<TagSummary[]> {
   return db.all<TagSummary>(
-    `select t.id, t.name, (select count(*) from document_tags dt where dt.tag_id = t.id) as doc_count
+    `select t.id, t.name, (select count(*) from document_tags dt join documents d on d.id = dt.document_id where dt.tag_id = t.id and d.deleted_at is null) as doc_count
        from tags t order by lower(t.name)`,
   );
 }

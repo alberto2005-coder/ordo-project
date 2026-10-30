@@ -13,7 +13,8 @@
       "buildNumber": "1",
       "infoPlist": {
         "CFBundleAllowMixedLocalizations": true,
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSFaceIDUsageDescription": "Ordo usa Face ID para desbloquear tus documentos."
       }
     },
     "android": {
@@ -24,7 +25,18 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO",
+        "android.permission.CAMERA"
+      ]
     },
     "locales": {
       "es": "./src/i18n/native/es.json",
@@ -55,8 +67,43 @@
         {
           "cameraPermission": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Ordo necesita acceder a tus fotos para importarlas. No salen de tu teléfono.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": false,
+          "savePhotosPermission": "Ordo guarda aquí las imágenes que exportas. No lee tu galería.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
       ]
     ],
-    "primaryColor": "#5b3a9e"
+    "primaryColor": "#5b3a9e",
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "3a2bd42f-eb0d-4d2f-b2fa-1402c3ece32d"
+      }
+    },
+    "owner": "alberto2005-coder"
   }
 }

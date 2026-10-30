@@ -1,6 +1,9 @@
+import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Screen } from '@/components/Screen';
-import type { ExportQuality, PdfPageSize, Settings } from '@/data/library';
+import { Button } from '@/components/Button';
+import type { ExportQuality, Filter, PdfPageSize, Settings } from '@/data/library';
 import { t, useLang, type StringKey } from '@/i18n';
 import { useApp } from '@/state/store';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -53,6 +56,7 @@ function Choice<T extends string>({
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   useLang();
   const settings = useApp((s) => s.settings);
   const change = useApp((s) => s.change);
@@ -103,7 +107,53 @@ export default function SettingsScreen() {
           ]}
           onChange={(v) => set({ pdf_page_size: v })}
         />
+        <Choice<Filter>
+          title={t('settings.defaultFilter')}
+          value={settings.default_filter}
+          options={(['original', 'enhanced', 'bw', 'gray'] as Filter[]).map((f) => ({ value: f, label: t(`edit.filter.${f}` as StringKey) }))}
+          onChange={(v) => set({ default_filter: v })}
+        />
+        <Choice<'0' | '1'>
+          title={t('settings.autoCrop')}
+          value={settings.auto_crop ? '1' : '0'}
+          options={[{ value: '1', label: t('common.yes') }, { value: '0', label: t('common.no') }]}
+          onChange={(v) => set({ auto_crop: v === '1' ? 1 : 0 })}
+        />
+        <Choice<Settings['pdf_orientation']>
+          title={`${t('settings.pdfLayout')}: ${t('export.orientation')}`}
+          value={settings.pdf_orientation}
+          options={(['auto', 'portrait', 'landscape'] as const).map((o) => ({ value: o, label: t(`export.orientation.${o}` as StringKey) }))}
+          onChange={(v) => set({ pdf_orientation: v })}
+        />
+        <Choice<Settings['pdf_margin']>
+          title={`${t('settings.pdfLayout')}: ${t('export.margin')}`}
+          value={settings.pdf_margin}
+          options={(['none', 'small', 'normal'] as const).map((m) => ({ value: m, label: t(`export.margin.${m}` as StringKey) }))}
+          onChange={(v) => set({ pdf_margin: v })}
+        />
+        <Choice<'0' | '1'>
+          title={`${t('settings.pdfLayout')}: ${t('export.numbers')}`}
+          value={settings.pdf_numbers ? '1' : '0'}
+          options={[{ value: '0', label: t('common.no') }, { value: '1', label: t('common.yes') }]}
+          onChange={(v) => set({ pdf_numbers: v === '1' ? 1 : 0 })}
+        />
+        <Choice<Settings['sort_by']>
+          title={t('settings.sort')}
+          value={settings.sort_by}
+          options={[{ value: 'date', label: t('settings.sort.date') }, { value: 'name', label: t('settings.sort.name') }]}
+          onChange={(v) => set({ sort_by: v })}
+        />
+        <Choice<Settings['view_mode']>
+          title={t('settings.view')}
+          value={settings.view_mode}
+          options={[{ value: 'grid', label: t('settings.view.grid') }, { value: 'list', label: t('settings.view.list') }]}
+          onChange={(v) => set({ view_mode: v })}
+        />
+        <Button label={t('backup.title')} variant="secondary" onPress={() => router.push('/backup')} />
+        <Button label={t('settings.trash')} variant="secondary" onPress={() => router.push('/trash')} />
+        <Button label={t('settings.lock')} variant="secondary" onPress={() => router.push('/lock')} />
         <Text style={[styles.privacy, { color: colors['text-muted'] }]}>{t('settings.privacy')}</Text>
+        <Text style={[styles.privacy, { color: colors['text-muted'] }]}>{t('settings.version', { v: Constants.expoConfig?.version ?? '' })}</Text>
       </ScrollView>
     </Screen>
   );

@@ -62,7 +62,7 @@ export async function deleteFolder(db: Db, id: string) {
 export async function listFolders(db: Db, parentId: string | null = null): Promise<FolderSummary[]> {
   return db.all<FolderSummary>(
     `select f.id, f.name, f.parent_id, f.locked,
-            (select count(*) from documents d where d.folder_id = f.id) as doc_count
+            (select count(*) from documents d where d.folder_id = f.id and d.deleted_at is null) as doc_count
        from folders f
       where f.parent_id is ?
       order by lower(f.name)`,
@@ -73,7 +73,7 @@ export async function listFolders(db: Db, parentId: string | null = null): Promi
 export async function getFolder(db: Db, id: string): Promise<FolderSummary | null> {
   return db.first<FolderSummary>(
     `select f.id, f.name, f.parent_id, f.locked,
-            (select count(*) from documents d where d.folder_id = f.id) as doc_count
+            (select count(*) from documents d where d.folder_id = f.id and d.deleted_at is null) as doc_count
        from folders f where f.id = ?`,
     [id],
   );
@@ -92,4 +92,20 @@ export async function setFolderLocked(db: Db, id: string, locked: boolean) {
 }
 export async function setDocumentLocked(db: Db, id: string, locked: boolean) {
   await db.run('update documents set locked = ? where id = ?', [locked ? 1 : 0, id]);
+}
+
+/** Used when the PIN is removed: nothing may stay locked behind a PIN that no longer exists. */
+export async function clearAllLocks(db: Db) {
+  await db.run('update documents set locked = 0');
+  await db.run('update folders set locked = 0');
+}
+
+/** True if the document, or the folder it sits in, is locked. */
+export async function isDocumentLocked(db: Db, docId: string): Promise<boolean> {
+  const row = await db.first<{ locked: number }>(
+    `select (d.locked or coalesce((select f.locked from folders f where f.id = d.folder_id), 0)) as locked
+       from documents d where d.id = ?`,
+    [docId],
+  );
+  return !!row && row.locked === 1;
 }

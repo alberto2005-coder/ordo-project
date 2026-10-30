@@ -1,5 +1,5 @@
 // Generated from replica/schema.sql. Edit the SQL file, then regenerate.
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 4;
 
 /** Version 2: first-run flag, vector signatures (replaces the unused image-based table). */
 export const MIGRATION_2 = `
@@ -10,6 +10,22 @@ create table signature_strokes (
   strokes    text not null,
   created_at text not null
 );
+`;
+
+/** Version 3: trash (soft delete), PDF layout options, library sort and view. */
+export const MIGRATION_3 = `
+alter table documents add column deleted_at text;
+create index documents_deleted on documents (deleted_at);
+alter table settings add column pdf_orientation text not null default 'auto' check (pdf_orientation in ('auto','portrait','landscape'));
+alter table settings add column pdf_margin text not null default 'none' check (pdf_margin in ('none','small','normal'));
+alter table settings add column pdf_numbers integer not null default 0 check (pdf_numbers in (0,1));
+alter table settings add column sort_by text not null default 'date' check (sort_by in ('date','name'));
+alter table settings add column view_mode text not null default 'grid' check (view_mode in ('grid','list'));
+`;
+
+/** Version 4: automatic page detection on imported photos (on by default). */
+export const MIGRATION_4 = `
+alter table settings add column auto_crop integer not null default 1 check (auto_crop in (0,1));
 `;
 
 export const SCHEMA_SQL = `

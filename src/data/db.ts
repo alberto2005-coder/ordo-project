@@ -1,4 +1,4 @@
-import { MIGRATION_2, SCHEMA_SQL, SCHEMA_VERSION } from './schema';
+import { MIGRATION_2, MIGRATION_3, MIGRATION_4, SCHEMA_SQL, SCHEMA_VERSION } from './schema';
 
 export type SqlValue = string | number | null;
 
@@ -18,7 +18,7 @@ export async function migrate(db: Db): Promise<void> {
   await db.exec('pragma foreign_keys = on');
   const row = await db.first<{ user_version: number }>('pragma user_version');
   let current = row?.user_version ?? 0;
-  const steps: string[] = [SCHEMA_SQL, MIGRATION_2];
+  const steps: string[] = [SCHEMA_SQL, MIGRATION_2, MIGRATION_3, MIGRATION_4];
   while (current < SCHEMA_VERSION) {
     await db.transaction(async () => {
       await db.exec(steps[current]);

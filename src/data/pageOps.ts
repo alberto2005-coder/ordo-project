@@ -1,4 +1,5 @@
 import type { Db } from './db';
+import { isFullPage, type Corners } from '../image/warp';
 import { newId, refreshDocumentText, unreferenced, type Filter } from './library';
 
 export interface PageEdit {
@@ -6,6 +7,8 @@ export interface PageEdit {
   rotation: 0 | 90 | 180 | 270;
   brightness: number;
   contrast: number;
+  /** Four page corners inside the original, or null for the whole picture. */
+  crop?: Corners | null;
 }
 
 /** Saves a page's edit and its new rendered file. Returns the old rendered file if it can be deleted. */
@@ -17,8 +20,8 @@ export async function updatePageEdit(db: Db, pageId: string, edit: PageEdit, pro
     );
     if (!page) throw new Error('page not found');
     await db.run(
-      'update pages set filter = ?, rotation = ?, brightness = ?, contrast = ?, processed_path = ? where id = ?',
-      [edit.filter, edit.rotation, edit.brightness, edit.contrast, processedPath, pageId],
+      'update pages set filter = ?, rotation = ?, brightness = ?, contrast = ?, crop_corners = ?, processed_path = ? where id = ?',
+      [edit.filter, edit.rotation, edit.brightness, edit.contrast, edit.crop && !isFullPage(edit.crop) ? JSON.stringify(edit.crop) : null, processedPath, pageId],
     );
     await db.run('update documents set updated_at = ? where id = ?', [now.toISOString(), page.document_id]);
     return page.processed_path === processedPath ? [] : unreferenced(db, [page.processed_path]);

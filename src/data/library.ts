@@ -11,6 +11,7 @@ export interface DocumentRow {
   locked: number;
   created_at: string;
   updated_at: string;
+  deleted_at?: string | null;
 }
 export interface DocumentSummary extends DocumentRow {
   page_count: number;
@@ -35,6 +36,10 @@ export interface PageRow {
 export interface NewPage {
   originalPath: string;
   processedPath?: string;
+  /** The edit already applied to processedPath (photos imported with a default filter). */
+  filter?: Filter;
+  /** Page corners inside the original, as fractions (see image/warp). */
+  crop?: [number, number][];
 }
 export interface Settings {
   default_filter: Filter;
@@ -44,6 +49,12 @@ export interface Settings {
   language: string;
   onboarded: number;
   biometrics_lock: number;
+  pdf_orientation: 'auto' | 'portrait' | 'landscape';
+  pdf_margin: 'none' | 'small' | 'normal';
+  pdf_numbers: number;
+  sort_by: 'date' | 'name';
+  view_mode: 'grid' | 'list';
+  auto_crop: number;
 }
 
 /** Local ids. Nothing leaves the phone, so a random v4-style id is enough. */
@@ -72,9 +83,9 @@ export async function createDocument(
     for (let i = 0; i < input.pages.length; i++) {
       const p = input.pages[i];
       await db.run(
-        `insert into pages (id, document_id, position, original_path, processed_path, created_at)
-         values (?, ?, ?, ?, ?, ?)`,
-        [newId(), id, i, p.originalPath, p.processedPath ?? p.originalPath, at],
+        `insert into pages (id, document_id, position, original_path, processed_path, filter, crop_corners, created_at)
+         values (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [newId(), id, i, p.originalPath, p.processedPath ?? p.originalPath, p.filter ?? 'original', p.crop ? JSON.stringify(p.crop) : null, at],
       );
     }
   });
@@ -88,9 +99,9 @@ function likePattern(q: string): string {
 
 export async function listDocuments(
   db: Db,
-  opts: { query?: string; folderId?: string | null; tagId?: string } = {},
+  opts: { query?: string; folderId?: string | null; tagId?: string; trashed?: boolean; sort?: 'date' | 'name' } = {},
 ): Promise<DocumentSummary[]> {
-  const where: string[] = [];
+  const where: string[] = [opts.trashed ? 'd.deleted_at is not null' : 'd.deleted_at is null'];
   const params: (string | number | null)[] = [];
   if (opts.folderId === null) where.push('d.folder_id is null');
   else if (opts.folderId) {
@@ -108,14 +119,14 @@ export async function listDocuments(
     params.push(pat, pat);
   }
   return db.all<DocumentSummary>(
-    `select d.id, d.title, d.folder_id, d.locked, d.created_at, d.updated_at,
+    `select d.id, d.title, d.folder_id, d.locked, d.created_at, d.updated_at, d.deleted_at,
             (select count(*) from pages p where p.document_id = d.id) as page_count,
             (select p.processed_path from pages p where p.document_id = d.id
               order by p.position limit 1) as thumbnail_path,
             (d.locked or coalesce((select f.locked from folders f where f.id = d.folder_id), 0)) as is_locked
        from documents d
       ${where.length ? 'where ' + where.join(' and ') : ''}
-      order by d.updated_at desc`,
+      order by ${opts.trashed ? 'd.deleted_at desc' : opts.sort === 'name' ? 'lower(d.title), d.updated_at desc' : 'd.updated_at desc'}`,
     params,
   );
 }
@@ -180,9 +191,9 @@ export async function addPages(db: Db, docId: string, pages: NewPage[], now = ne
     let pos = row?.next ?? 0;
     for (const p of pages) {
       await db.run(
-        `insert into pages (id, document_id, position, original_path, processed_path, created_at)
-         values (?, ?, ?, ?, ?, ?)`,
-        [newId(), docId, pos++, p.originalPath, p.processedPath ?? p.originalPath, iso(now)],
+        `insert into pages (id, document_id, position, original_path, processed_path, filter, crop_corners, created_at)
+         values (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [newId(), docId, pos++, p.originalPath, p.processedPath ?? p.originalPath, p.filter ?? 'original', p.crop ? JSON.stringify(p.crop) : null, iso(now)],
       );
     }
     await db.run('update documents set updated_at = ? where id = ?', [iso(now), docId]);
@@ -235,7 +246,7 @@ export async function getSettings(db: Db): Promise<Settings> {
 export async function updateSettings(db: Db, patch: Partial<Settings>) {
   const keys = Object.keys(patch) as (keyof Settings)[];
   if (!keys.length) return;
-  const allowed = ['default_filter', 'export_quality', 'pdf_page_size', 'theme', 'language', 'onboarded', 'biometrics_lock'];
+  const allowed = ['default_filter', 'export_quality', 'pdf_page_size', 'theme', 'language', 'onboarded', 'biometrics_lock', 'pdf_orientation', 'pdf_margin', 'pdf_numbers', 'sort_by', 'view_mode', 'auto_crop'];
   if (keys.some((k) => !allowed.includes(k))) throw new Error('unknown setting');
   await db.run(
     `update settings set ${keys.map((k) => `${k} = ?`).join(', ')} where id = 1`,

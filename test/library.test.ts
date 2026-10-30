@@ -32,7 +32,7 @@ describe('migrate', () => {
   it('creates the tables, sets the version, and is safe to run twice', async () => {
     await migrate(db);
     const v = await db.first<{ user_version: number }>('pragma user_version');
-    expect(v?.user_version).toBe(2);
+    expect(v?.user_version).toBe(4);
     const tables = await db.all<{ name: string }>(
       "select name from sqlite_master where type = 'table' order by name",
     );
@@ -119,6 +119,14 @@ describe('pages', () => {
     const files = await deletePage(db, middle.id);
     expect(files).toEqual(['file:///d/p1.jpg']);
     expect((await getDocument(db, id))!.pages.map((p) => p.position)).toEqual([0, 1]);
+  });
+
+  it('keeps the filter a page was created with (imported photos)', async () => {
+    const id = await createDocument(db, { title: 'F', pages: [{ originalPath: 'o.jpg', processedPath: 'p.jpg', filter: 'bw' }, { originalPath: 'o2.jpg' }] });
+    await addPages(db, id, [{ originalPath: 'o3.jpg', processedPath: 'p3.jpg', filter: 'gray' }]);
+    const got = await getDocument(db, id);
+    expect(got!.pages.map((p) => p.filter)).toEqual(['bw', 'original', 'gray']);
+    expect(got!.pages[0].processed_path).toBe('p.jpg');
   });
 
   it('appends pages at the end', async () => {

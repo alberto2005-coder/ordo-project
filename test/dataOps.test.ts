@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { addAnnotation, deleteSignature, listAnnotations, listSignatures, removeLastAnnotation, saveSignature, validate } from '../src/data/annotations';
 import { migrate, type Db } from '../src/data/db';
-import { createFolder, deleteFolder, getFolder, listFolders, moveDocument, renameFolder, setDocumentLocked, setFolderLocked } from '../src/data/folders';
+import { clearAllLocks, createFolder, deleteFolder, getFolder, isDocumentLocked, listFolders, moveDocument, renameFolder, setDocumentLocked, setFolderLocked } from '../src/data/folders';
 import { createDocument, deleteDocument, deletePage, getDocument, listDocuments } from '../src/data/library';
 import { mergeDocuments, savePageOcr, splitDocument, updatePageEdit } from '../src/data/pageOps';
 import { getDocumentTags, listTags, setDocumentTags } from '../src/data/tags';
@@ -73,6 +73,23 @@ describe('folders', () => {
     expect(rows.find((x) => x.id === free)?.is_locked).toBe(0);
     await setDocumentLocked(db, free, true);
     expect((await listDocuments(db)).find((x) => x.id === free)?.is_locked).toBe(1);
+  });
+
+  it('isDocumentLocked follows the document and its folder, and clearAllLocks removes every lock', async () => {
+    const f = await createFolder(db, 'Priv');
+    const inFolder = await doc('A', 'a');
+    const alone = await doc('B', 'b');
+    await moveDocument(db, inFolder, f);
+    expect(await isDocumentLocked(db, inFolder)).toBe(false);
+    await setFolderLocked(db, f, true);
+    expect(await isDocumentLocked(db, inFolder)).toBe(true);
+    expect(await isDocumentLocked(db, alone)).toBe(false);
+    await setDocumentLocked(db, alone, true);
+    expect(await isDocumentLocked(db, alone)).toBe(true);
+    expect(await isDocumentLocked(db, 'missing')).toBe(false);
+    await clearAllLocks(db);
+    expect(await isDocumentLocked(db, inFolder)).toBe(false);
+    expect(await isDocumentLocked(db, alone)).toBe(false);
   });
 });
 

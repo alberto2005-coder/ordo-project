@@ -125,3 +125,17 @@ describe('burning annotations into an image (for JPG export)', () => {
     expect(() => burnAnnotations(blank(), [{ kind: 'draw', color: '#000000', width: 0.05, points: [[-0.3, -0.3], [1.4, 1.4]] }])).not.toThrow();
   });
 });
+
+import { loadTextFont } from '../src/image/text';
+describe('typed text in pictures', () => {
+  it('is painted when a font is given and not counted as skipped', () => {
+    const img = { width: 300, height: 200, data: new Uint8ClampedArray(300 * 200 * 4).fill(255) };
+    const { pixels, skippedText } = burnAnnotations(img, [{ kind: 'text', x: 0.1, y: 0.3, text: 'Firmado', size: 0.1, color: '#0000ff' }], loadTextFont());
+    expect(skippedText).toBe(0);
+    let blue = 0;
+    for (let i = 0; i < pixels.data.length; i += 4) if (pixels.data[i] < 100 && pixels.data[i + 2] > 200) blue++;
+    expect(blue).toBeGreaterThan(100);
+    // the original picture is not touched
+    expect(img.data[0]).toBe(255);
+  });
+});

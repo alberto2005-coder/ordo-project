@@ -8,10 +8,10 @@ export type ScanResult =
 
 /** Opens the phone's own document scanner (edge detection, crop and flattening included)
  *  and keeps the resulting pages in the app's private folder. */
-export async function scanPages(): Promise<ScanResult> {
+export async function scanPages(maxPages?: number): Promise<ScanResult> {
   let response;
   try {
-    response = await DocumentScanner.scanDocument({ croppedImageQuality: 90 });
+    response = await DocumentScanner.scanDocument({ croppedImageQuality: 90, ...(maxPages ? { maxNumDocuments: maxPages } : {}) });
   } catch {
     return { status: 'error' };
   }

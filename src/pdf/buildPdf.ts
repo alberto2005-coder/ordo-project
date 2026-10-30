@@ -1,4 +1,4 @@
-import { PDFDocument } from '@cantoo/pdf-lib';
+import { PDFDocument, rgb } from '@cantoo/pdf-lib';
 import type { AnnotationData } from '@/data/annotations';
 import { drawAnnotation, drawWatermark, loadFont } from './draw';
 
@@ -16,7 +16,15 @@ export interface PdfOptions {
   password?: string;
   /** Faint diagonal text over every page. */
   watermark?: string;
+  /** auto = landscape for wide pictures. Ignored for 'fit'. */
+  orientation?: 'auto' | 'portrait' | 'landscape';
+  /** White border around the picture. */
+  margin?: 'none' | 'small' | 'normal';
+  /** Prints "n / total" at the bottom of every page. */
+  pageNumbers?: boolean;
 }
+
+export const MARGIN_POINTS = { none: 0, small: 18, normal: 36 } as const;
 
 // PDF points (1/72 inch).
 const SIZES = { A4: [595.28, 841.89], Letter: [612, 792] } as const;
@@ -35,23 +43,29 @@ export async function buildPdf(images: PageImage[], opts: PdfOptions): Promise<U
   const font = await loadFont(pdf);
   for (const img of images) {
     const embedded = img.format === 'png' ? await pdf.embedPng(img.bytes) : await pdf.embedJpg(img.bytes);
+    // Page numbers need room, so they bring a small margin with them.
+    const m = MARGIN_POINTS[opts.margin === 'none' && opts.pageNumbers ? 'small' : opts.margin ?? 'none'];
     let pageW: number;
     let pageH: number;
     if (opts.pageSize === 'fit') {
-      const scale = FIT_LONG_SIDE / Math.max(embedded.width, embedded.height);
-      pageW = embedded.width * scale;
-      pageH = embedded.height * scale;
+      const scale = (FIT_LONG_SIDE - 2 * m) / Math.max(embedded.width, embedded.height);
+      pageW = embedded.width * scale + 2 * m;
+      pageH = embedded.height * scale + 2 * m;
     } else {
-      [pageW, pageH] = SIZES[opts.pageSize];
-      // A landscape scan gets a landscape page so it is not shrunk.
-      if (embedded.width > embedded.height) [pageW, pageH] = [pageH, pageW];
+      const [short, long] = SIZES[opts.pageSize].slice().sort((a, b) => a - b);
+      const landscape = opts.orientation === 'landscape' || ((opts.orientation ?? 'auto') === 'auto' && embedded.width > embedded.height);
+      [pageW, pageH] = landscape ? [long, short] : [short, long];
     }
-    const scale = Math.min(pageW / embedded.width, pageH / embedded.height);
+    const scale = Math.min((pageW - 2 * m) / embedded.width, (pageH - 2 * m) / embedded.height);
     const w = embedded.width * scale;
     const h = embedded.height * scale;
     const page = pdf.addPage([pageW, pageH]);
     const area = { x: (pageW - w) / 2, y: (pageH - h) / 2, width: w, height: h };
     page.drawImage(embedded, area);
+    if (opts.pageNumbers) {
+      const label = `${pdf.getPageCount()} / ${images.length}`;
+      page.drawText(label, { x: (pageW - font.widthOfTextAtSize(label, 9)) / 2, y: Math.max(4, (m - 9) / 2), size: 9, font, color: rgb(0.35, 0.35, 0.35) });
+    }
     for (const a of img.annotations ?? []) drawAnnotation(page, area, a, font);
     if (opts.watermark?.trim()) drawWatermark(page, opts.watermark, font);
   }

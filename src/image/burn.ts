@@ -1,5 +1,6 @@
 import type { AnnotationData, Point } from '@/data/annotations';
 import type { Pixels } from './pixels';
+import { drawText, type Font } from './text';
 
 function hex(c: string): [number, number, number] {
   const n = parseInt(c.slice(1), 16);
@@ -39,9 +40,9 @@ function stroke(img: Pixels, pts: Point[], thickness: number, color: string, alp
   for (let i = 1; i < px.length; i++) line(img, px[i - 1], px[i], r, rgb, alpha);
 }
 
-/** Draws drawings, highlights and signatures onto a copy of the picture.
- *  Typed text is not drawn here (that needs a font); it is reported so the screen can say so. */
-export function burnAnnotations(img: Pixels, annotations: AnnotationData[]): { pixels: Pixels; skippedText: number } {
+/** Draws drawings, highlights, signatures and typed text onto a copy of the picture.
+ *  Typed text needs a font: without one it is not drawn and is counted in `skippedText` so the screen can say so. */
+export function burnAnnotations(img: Pixels, annotations: AnnotationData[], font?: Font): { pixels: Pixels; skippedText: number } {
   const out: Pixels = { width: img.width, height: img.height, data: new Uint8ClampedArray(img.data) };
   let skippedText = 0;
   for (const a of annotations) {
@@ -65,7 +66,10 @@ export function burnAnnotations(img: Pixels, annotations: AnnotationData[]): { p
         const mapped = s.map(([sx, sy]): Point => [(a.x * img.width + sx * boxW) / img.width, (a.y * img.height + sy * boxH) / img.height]);
         stroke(out, mapped, Math.max(1.5, boxW * 0.012), a.color, 1);
       }
-    } else skippedText++;
+    } else if (a.kind === 'text') {
+      if (!font) skippedText++;
+      else drawText(out, font, a.text, a.x * img.width, a.y * img.height, Math.max(4, a.size * img.width), hex(a.color));
+    }
   }
   return { pixels: out, skippedText };
 }

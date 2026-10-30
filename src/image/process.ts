@@ -1,5 +1,6 @@
 import jpeg from 'jpeg-js';
 import { adjust, applyFilter, type Filter, type Pixels } from './pixels';
+import { isFullPage, rotate, warpPerspective, type Corners } from './warp';
 
 export interface Edit {
   filter: Filter;
@@ -31,6 +32,27 @@ export function encodeJpeg(img: Pixels, quality = 85): Uint8Array {
 export function editJpeg(bytes: Uint8Array, edit: Edit, quality = 85): Uint8Array {
   if (isNoEdit(edit)) return bytes;
   let px = decodeJpeg(bytes);
+  px = applyFilter(px, edit.filter);
+  if (edit.brightness !== 0 || edit.contrast !== 0) px = adjust(px, edit.brightness, edit.contrast);
+  return encodeJpeg(px, quality);
+}
+
+export interface FullEdit extends Edit {
+  rotation: 0 | 90 | 180 | 270;
+  /** Four corners of the page inside the picture; null or the whole picture means no crop. */
+  crop?: Corners | null;
+}
+
+export function isNoFullEdit(e: FullEdit): boolean {
+  return isNoEdit(e) && !e.rotation && isFullPage(e.crop);
+}
+
+/** Crop and straighten, then rotate, then filter and sliders. With no edit the bytes come back untouched. */
+export function editJpegFull(bytes: Uint8Array, edit: FullEdit, quality = 88, maxSide = 2000): Uint8Array {
+  if (isNoFullEdit(edit)) return bytes;
+  let px = decodeJpeg(bytes);
+  if (!isFullPage(edit.crop)) px = warpPerspective(px, edit.crop as Corners, maxSide);
+  px = rotate(px, edit.rotation);
   px = applyFilter(px, edit.filter);
   if (edit.brightness !== 0 || edit.contrast !== 0) px = adjust(px, edit.brightness, edit.contrast);
   return encodeJpeg(px, quality);
