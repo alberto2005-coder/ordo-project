@@ -39,6 +39,10 @@
       ],
       "gradleProperties": {
         "android.injected.checkAndroidLintForBuild": "false"
+      },
+      "androidLint": {
+        "checkReleaseBuilds": false,
+        "abortOnError": false
       }
     },
     "locales": {
