@@ -36,7 +36,10 @@
         "android.permission.READ_MEDIA_VIDEO",
         "android.permission.READ_MEDIA_AUDIO",
         "android.permission.CAMERA"
-      ]
+      ],
+      "gradleProperties": {
+        "android.injected.checkAndroidLintForBuild": "false"
+      }
     },
     "locales": {
       "es": "./src/i18n/native/es.json",
