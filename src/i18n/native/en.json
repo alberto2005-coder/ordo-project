@@ -1,7 +1,9 @@
 {
-  "CFBundleDisplayName": "Ordo",
-  "NSCameraUsageDescription": "Ordo needs the camera to scan. Your photos never leave your phone.",
-  "NSPhotoLibraryUsageDescription": "Ordo needs access to your photos to import them. They never leave your phone.",
-  "NSFaceIDUsageDescription": "Ordo uses Face ID to unlock your documents.",
-  "NSPhotoLibraryAddUsageDescription": "Ordo saves the images you export here. It does not read your gallery."
+  "ios": {
+    "CFBundleDisplayName": "Ordo",
+    "NSCameraUsageDescription": "Ordo needs the camera to scan. Your photos never leave your phone.",
+    "NSPhotoLibraryUsageDescription": "Ordo needs access to your photos to import them. They never leave your phone.",
+    "NSFaceIDUsageDescription": "Ordo uses Face ID to unlock your documents.",
+    "NSPhotoLibraryAddUsageDescription": "Ordo saves the images you export here. It does not read your gallery."
+  }
 }

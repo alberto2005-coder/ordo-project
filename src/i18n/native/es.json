@@ -1,7 +1,9 @@
 {
-  "CFBundleDisplayName": "Ordo",
-  "NSCameraUsageDescription": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono.",
-  "NSPhotoLibraryUsageDescription": "Ordo necesita acceder a tus fotos para importarlas. No salen de tu teléfono.",
-  "NSFaceIDUsageDescription": "Ordo usa Face ID para desbloquear tus documentos.",
-  "NSPhotoLibraryAddUsageDescription": "Ordo guarda aquí las imágenes que exportas. No lee tu galería."
+  "ios": {
+    "CFBundleDisplayName": "Ordo",
+    "NSCameraUsageDescription": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono.",
+    "NSPhotoLibraryUsageDescription": "Ordo necesita acceder a tus fotos para importarlas. No salen de tu teléfono.",
+    "NSFaceIDUsageDescription": "Ordo usa Face ID para desbloquear tus documentos.",
+    "NSPhotoLibraryAddUsageDescription": "Ordo guarda aquí las imágenes que exportas. No lee tu galería."
+  }
 }
