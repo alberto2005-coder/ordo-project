@@ -347,6 +347,8 @@
   "camera.undo": "Quitar la última foto",
   "camera.denied": "Ordo necesita la cámara para hacer fotos. Permítela en los ajustes del teléfono.",
   "camera.allow": "Permitir la cámara",
+  "camera.blocked": "La cámara está bloqueada para Ordo. Actívala en los ajustes del teléfono.",
+  "camera.openSettings": "Abrir ajustes",
   "camera.mode.doc": "Documento",
   "camera.mode.receipt": "Recibo",
   "camera.mode.book": "Libro",

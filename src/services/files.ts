@@ -9,12 +9,24 @@ function ensure(dir: Directory) {
   if (!dir.exists) dir.create({ intermediates: true });
 }
 
+/** The extension that matches what the bytes really are. Photos can arrive as PNG, HEIC or WebP. */
+function extensionOf(bytes: Uint8Array): string {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpg';
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return 'png';
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57) return 'webp';
+  if (bytes[4] === 0x66 && bytes[5] === 0x74 && bytes[6] === 0x79 && bytes[7] === 0x70) return 'heic';
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return 'gif';
+  return 'jpg';
+}
+
 /** The scanner and the photo picker leave images in a temporary place. Copy them into the app folder so they survive. */
 export async function keepScan(tempUri: string): Promise<string> {
   const dir = scans();
   ensure(dir);
-  const target = new File(dir, `${newId()}.jpg`);
-  await new File(tempUri).copy(target);
+  const source = new File(tempUri);
+  const ext = extensionOf(await source.bytes());
+  const target = new File(dir, `${newId()}.${ext}`);
+  await source.copy(target);
   return target.uri;
 }
 

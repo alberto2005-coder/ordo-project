@@ -1,7 +1,8 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Image } from 'react-native';
 import { editJpegFull, isNoFullEdit, type FullEdit } from '@/image/process';
-import { readBytes, writePreview, writeScanBytes } from './files';
+import { writePreview, writeScanBytes } from './files';
+import { readJpegBytes } from './jpeg';
 
 export type PageEditInput = FullEdit;
 
@@ -28,7 +29,7 @@ export async function renderPage(originalUri: string, edit: PageEditInput, opts:
   const shrunk = actions.length
     ? await ImageManipulator.manipulateAsync(originalUri, actions, { compress: 0.92, format: ImageManipulator.SaveFormat.JPEG })
     : { uri: originalUri };
-  let bytes = await readBytes(shrunk.uri);
+  let bytes = await readJpegBytes(shrunk.uri);
   bytes = editJpegFull(bytes, edit, 88, opts.maxSide);
   return opts.persist ? writeScanBytes(bytes) : writePreview(bytes);
 }

@@ -161,7 +161,6 @@ function DocumentBody({ id }: { id: string }) {
     { label: t('doc.addPhotos'), icon: ic(ImagePlus), onPress: () => void addPages('import') },
     { label: t('library.importPdf'), icon: ic(FileText), onPress: () => void addPages('pdf') },
     { label: t('doc.export'), icon: ic(Share2), onPress: () => router.push(`/export/${id}`) },
-    { label: t('library.importPdf'), icon: ic(FileText), onPress: () => void addPages('pdf') },
     { label: t('doc.moveToFolder'), icon: ic(FolderInput), onPress: () => void openMove() },
     { label: t('doc.tags'), icon: ic(Tag), onPress: () => void openTags() },
     { label: doc?.locked ? t('doc.unlock') : t('doc.lock'), icon: ic(Lock), onPress: () => void toggleLock() },

@@ -1,6 +1,7 @@
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+import { Image } from 'react-native';
 import { listAnnotationsForDocument, type AnnotationData } from '@/data/annotations';
 import type { Db } from '@/data/db';
 import { getDocument, type ExportQuality, type PdfPageSize } from '@/data/library';
@@ -14,6 +15,7 @@ import { encodePng } from '@/image/png';
 import { loadTextFont, type Font } from '@/image/text';
 import { buildPdf, QUALITY_PRESETS, type PageImage } from '@/pdf/buildPdf';
 import { fileSize, readBytes, writeExport } from './files';
+import { readJpegBytes } from './jpeg';
 
 export type ExportOutcome =
   | { status: 'ok'; uri: string; size: number; mime: string; uti: string }
@@ -48,15 +50,26 @@ const MIME = {
   docx: { mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', uti: 'org.openxmlformats.wordprocessingml.document' },
 } as const;
 
-/** Shrinks a page image for the chosen quality. 'high' reads the file as it is. */
+/** Shrinks a page image for the chosen quality and always hands back real JPEG bytes ('high' keeps the
+ *  file as it is). A page can still be a PNG, which the PDF library cannot embed. */
 async function loadPageBytes(uri: string, quality: ExportQuality): Promise<Uint8Array> {
   const preset = QUALITY_PRESETS[quality];
-  if (!preset) return readBytes(uri);
-  const out = await ImageManipulator.manipulateAsync(uri, [{ resize: { width: preset.maxSide } }], {
+  if (!preset) return readJpegBytes(uri);
+  const { width, height } = await sizeOf(uri);
+  // Fit inside maxSide by the long side, so a tall page is shrunk instead of stretched.
+  const scale = Math.min(1, preset.maxSide / Math.max(width, height));
+  const actions: ImageManipulator.Action[] = scale < 1
+    ? [{ resize: width >= height ? { width: Math.round(width * scale) } : { height: Math.round(height * scale) } }]
+    : [];
+  const out = await ImageManipulator.manipulateAsync(uri, actions, {
     compress: preset.jpeg,
     format: ImageManipulator.SaveFormat.JPEG,
   });
   return readBytes(out.uri);
+}
+
+function sizeOf(uri: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve, reject) => Image.getSize(uri, (width, height) => resolve({ width, height }), reject));
 }
 
 /** Builds the PDF for a document, with its drawings, text and signatures on top, and writes it to the cache.

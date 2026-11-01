@@ -6,7 +6,8 @@ import { composeIdSheet } from '@/image/idCard';
 import { decodeJpeg, encodeJpeg } from '@/image/process';
 import type { Corners } from '@/image/warp';
 import { detectPageIn } from './detect';
-import { keepScan, readBytes, removeFiles, writeScanBytes } from './files';
+import { keepScan, removeFiles, writeScanBytes } from './files';
+import { readJpegBytes } from './jpeg';
 import { PAGE_MAX_SIDE, renderPage } from './render';
 
 export type CaptureMode = 'doc' | 'receipt' | 'book' | 'id';
@@ -34,7 +35,7 @@ async function splitBook(uri: string): Promise<[string, string]> {
   const resized = Math.max(width, height) > SPREAD_MAX_SIDE
     ? (await ImageManipulator.manipulateAsync(uri, [{ resize: width >= height ? { width: SPREAD_MAX_SIDE } : { height: SPREAD_MAX_SIDE } }], { format: ImageManipulator.SaveFormat.JPEG, compress: 0.92 })).uri
     : uri;
-  const [left, right] = splitSpread(decodeJpeg(await readBytes(resized)));
+  const [left, right] = splitSpread(decodeJpeg(await readJpegBytes(resized)));
   const a = await writeScanBytes(encodeJpeg(left, 92));
   try {
     return [a, await writeScanBytes(encodeJpeg(right, 92))];
@@ -69,7 +70,7 @@ export async function buildPages(inputs: string[], mode: CaptureMode, cfg: Captu
         if (cut.uri !== kept) made.push(cut.uri);
         pics.push(cut.uri);
       }
-      const sheet = composeIdSheet(decodeJpeg(await readBytes(pics[0])), pics[1] ? decodeJpeg(await readBytes(pics[1])) : null);
+      const sheet = composeIdSheet(decodeJpeg(await readJpegBytes(pics[0])), pics[1] ? decodeJpeg(await readJpegBytes(pics[1])) : null);
       const path = await writeScanBytes(encodeJpeg(sheet, 90));
       removeFiles(made);
       return [{ originalPath: path }];

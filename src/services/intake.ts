@@ -18,7 +18,8 @@ async function store(pages: NewPage[], target: Target): Promise<string | null> {
       return target.addTo;
     }
     return await createDocument(db, { title: target.title, pages, folderId: target.newIn });
-  } catch {
+  } catch (e) {
+    console.error('[Ordo] saving pages failed', e);
     removeFiles(pages.flatMap((p) => [p.originalPath, p.processedPath ?? p.originalPath]));
     Alert.alert(t('error.generic'));
     return null;

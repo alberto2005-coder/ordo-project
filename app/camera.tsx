@@ -3,8 +3,8 @@ import { CameraView, useCameraPermissions, type FlashMode } from 'expo-camera';
 import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Grid3x3, Lightbulb, X, Zap, ZapOff } from 'lucide-react-native';
-import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, AppState, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/Button';
 import { Chip, IconButton } from '@/components/ui';
@@ -25,7 +25,7 @@ export default function CameraScreen() {
   const lang = useLang();
   const insets = useSafeAreaInsets();
   const settings = useApp((s) => s.settings);
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, requestPermission, getPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
   const [mode, setMode] = useState<CaptureMode>(MODES.includes(modeParam as CaptureMode) ? (modeParam as CaptureMode) : 'doc');
   const [flash, setFlash] = useState<FlashMode>('off');
@@ -36,13 +36,36 @@ export default function CameraScreen() {
   const [taking, setTaking] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Coming back from the phone's settings has to re-read the permission, otherwise
+  // the screen keeps saying "no permission" after it has been granted.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void getPermission?.();
+    });
+    return () => sub.remove();
+  }, [getPermission]);
+
   if (!permission) return <View style={{ flex: 1, backgroundColor: colors['camera-bg'] }} />;
   if (!permission.granted) {
+    // Once Android stops offering the dialog, asking again does nothing; only the
+    // settings screen can turn the camera back on.
+    const blocked = permission.canAskAgain === false;
     return (
       <View style={[styles.fill, styles.center, { backgroundColor: colors['camera-bg'], padding: 24, gap: 16 }]}>
         <Stack.Screen options={{ title: t('camera.title') }} />
-        <Text style={{ color: colors['on-camera'], fontSize: 16, lineHeight: 24, textAlign: 'center' }}>{t('camera.denied')}</Text>
-        <Button label={t('camera.allow')} onPress={() => void requestPermission()} />
+        <Text style={{ color: colors['on-camera'], fontSize: 16, lineHeight: 24, textAlign: 'center' }}>{blocked ? t('camera.blocked') : t('camera.denied')}</Text>
+        <Button
+          label={blocked ? t('camera.openSettings') : t('camera.allow')}
+          onPress={() => {
+            void (async () => {
+              if (!blocked) {
+                const next = await requestPermission();
+                if (next.granted || next.canAskAgain) return;
+              }
+              await Linking.openSettings();
+            })();
+          }}
+        />
       </View>
     );
   }

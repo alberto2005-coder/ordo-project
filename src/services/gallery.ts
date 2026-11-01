@@ -18,7 +18,8 @@ export async function importFromGallery(defaultFilter: Filter, onProgress?: (don
       orderedSelection: true,
       quality: 1,
     });
-  } catch {
+  } catch (e) {
+    console.error('[Ordo] image picker failed', e);
     return { status: 'error' };
   }
   if (picked.canceled || !picked.assets?.length) return { status: 'cancelled' };
@@ -39,7 +40,8 @@ export async function importFromGallery(defaultFilter: Filter, onProgress?: (don
       }
       pages.push({ originalPath: original, processedPath: processed, filter: processed === original ? 'original' : defaultFilter, crop: crop ?? undefined });
     }
-  } catch {
+  } catch (e) {
+    console.error('[Ordo] import failed', e);
     // Do not leave a half-imported batch on disk.
     removeFiles(created);
     return { status: 'error' };

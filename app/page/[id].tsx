@@ -36,6 +36,17 @@ function EditBody({ pageId }: { pageId: string }) {
   const [working, setWorking] = useState(false);
   const [saving, setSaving] = useState(false);
   const run = useRef(0);
+  /** The last preview file, removed when a new one replaces it so the cache does not pile up. */
+  const lastPreview = useRef<string | null>(null);
+
+  // Nothing to clean up if the screen is left while a preview is showing.
+  useEffect(
+    () => () => {
+      if (lastPreview.current) removeFiles([lastPreview.current]);
+      lastPreview.current = null;
+    },
+    [],
+  );
 
   useEffect(() => {
     (async () => {
@@ -59,7 +70,12 @@ function EditBody({ pageId }: { pageId: string }) {
       setWorking(true);
       try {
         const uri = await renderPage(page.original_path, { filter, rotation, brightness, contrast, crop }, { maxSide: PREVIEW_MAX_SIDE, persist: false });
-        if (mine === run.current) setPreview(uri);
+        if (mine === run.current) {
+          const old = lastPreview.current;
+          lastPreview.current = uri;
+          setPreview(uri);
+          if (old && old !== uri) removeFiles([old]);
+        }
       } catch {
         if (mine === run.current) Alert.alert(t('edit.failed'));
       } finally {

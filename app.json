@@ -99,11 +99,7 @@
         "asyncRoutes": {
           "web": true
         }
-      },
-      "eas": {
-        "projectId": "3a2bd42f-eb0d-4d2f-b2fa-1402c3ece32d"
       }
-    },
-    "owner": "alberto2005-coder"
+    }
   }
 }
