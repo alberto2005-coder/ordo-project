@@ -38,6 +38,10 @@ export function findGutter(img: Pixels): number {
     if (v < bestVal) (bestVal = v), (best = i);
     if (v > max) max = v;
   });
+  // A "fold" at the very edge of the search window is really a window border, a
+  // toolbar or the edge of the picture, not the middle of the book.
+  const margin = Math.max(2, Math.round(smooth.length * 0.05));
+  if (best < margin || best > smooth.length - 1 - margin) return Math.round(w / 2);
   // A real fold is clearly darker than the paper around it. Otherwise cut in the middle.
   if (max - bestVal < 12) return Math.round(w / 2);
   return from + best;

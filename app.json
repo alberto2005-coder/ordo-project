@@ -72,7 +72,7 @@
         "expo-image-picker",
         {
           "photosPermission": "Ordo necesita acceder a tus fotos para importarlas. No salen de tu teléfono.",
-          "cameraPermission": false,
+          "cameraPermission": "Ordo necesita la cámara para escanear. Tus fotos no salen de tu teléfono.",
           "microphonePermission": false
         }
       ],

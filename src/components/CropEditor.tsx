@@ -86,7 +86,9 @@ export function CropEditor({ uri, corners, onChange }: { uri: string; corners: C
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  // Keep the handles away from the screen edges: Android's back gesture starts there and would
+  // close the editor instead of dragging the corner.
+  wrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
   handle: { position: 'absolute', width: HANDLE, height: HANDLE, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 22, height: 22, borderRadius: 11, borderWidth: 3 },
 });
