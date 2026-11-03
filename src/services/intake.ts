@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import { getDb } from '@/data/expoDb';
 import { addPages, createDocument, type Filter, type NewPage } from '@/data/library';
 import { t } from '@/i18n';
+import { canModifyDocument } from './auth';
 import { buildPages, type CaptureConfig, type CaptureMode } from './capture';
 import { importFromGallery } from './gallery';
 import { removeFiles } from './files';
@@ -14,6 +15,12 @@ async function store(pages: NewPage[], target: Target): Promise<string | null> {
   const db = await getDb();
   try {
     if ('addTo' in target) {
+      // A locked document must not take new pages just because a screen (or a deep link) asked for it.
+      if (!(await canModifyDocument(db, target.addTo))) {
+        removeFiles(pages.flatMap((p) => [p.originalPath, p.processedPath ?? p.originalPath]));
+        Alert.alert(t('lock.lockedWrite'));
+        return null;
+      }
       await addPages(db, target.addTo, pages);
       return target.addTo;
     }

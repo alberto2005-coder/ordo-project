@@ -1,6 +1,8 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import { AppState } from 'react-native';
+import type { Db } from '@/data/db';
+import { isDocumentLocked } from '@/data/folders';
 import { PinVault, type KeyValue } from '@/security/pin';
 
 const store: KeyValue = {
@@ -33,6 +35,12 @@ const unlocked = new Set<string>();
 export const isUnlocked = (id: string) => unlocked.has(id);
 export const markUnlocked = (id: string) => void unlocked.add(id);
 export const lockAll = () => unlocked.clear();
+
+/** True when a document may be changed: it is not locked, or it was unlocked in this visit.
+ *  Screens are not the only way in (deep links, the camera, imports), so the check lives here too. */
+export async function canModifyDocument(db: Db, id: string): Promise<boolean> {
+  return !(await isDocumentLocked(db, id)) || isUnlocked(id);
+}
 
 AppState.addEventListener('change', (s) => {
   if (s !== 'active') lockAll();
