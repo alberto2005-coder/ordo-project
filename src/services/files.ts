@@ -80,6 +80,16 @@ export async function writeExport(name: string, ext: string, bytes: Uint8Array):
   return file.uri;
 }
 
+/** Shared exports are plain files: the copies are dropped as soon as the person comes back to the app. */
+export function clearExports() {
+  try {
+    const dir = cache('exports');
+    if (dir.exists) dir.delete();
+  } catch {
+    // Not critical.
+  }
+}
+
 /** Exports and previews are throwaway copies, cleared when the app starts. */
 export function clearTemporary() {
   for (const name of ['exports', 'previews']) {

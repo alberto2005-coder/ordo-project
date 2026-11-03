@@ -2,13 +2,13 @@ import '@/polyfills';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, AppState, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { t, useLang } from '@/i18n';
 import { getDb } from '@/data/expoDb';
 import { purgeOld } from '@/data/trash';
-import { clearTemporary, removeFiles } from '@/services/files';
+import { clearExports, clearTemporary, removeFiles } from '@/services/files';
 import { useApp } from '@/state/store';
 import { ThemeProvider, useTheme } from '@/theme/ThemeProvider';
 
@@ -52,6 +52,17 @@ export default function RootLayout() {
     // Old trash is emptied on start.
     void (async () => removeFiles(await purgeOld(await getDb())))();
   }, [load]);
+
+  useEffect(() => {
+    // Exports go to the share sheet as they are, so they are dropped once the person is back in the app.
+    let away = false;
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s !== 'active') return void (away = true);
+      if (away) clearExports();
+      away = false;
+    });
+    return () => sub.remove();
+  }, []);
 
   if (!ready || !settings) {
     return (
