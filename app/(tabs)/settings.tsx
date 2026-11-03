@@ -98,7 +98,7 @@ export default function SettingsScreen() {
           onChange={(v) => set({ export_quality: v })}
         />
         <Choice<PdfPageSize>
-          title={t('export.size')}
+          title={t('settings.pageSize')}
           value={settings.pdf_page_size}
           options={[
             { value: 'A4', label: 'A4' },
