@@ -6,7 +6,7 @@ import { strToU8, zipSync } from 'fflate';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { restoreBackup, writeBackup, type Sink } from '../src/backup/backup';
 import { migrate, type Db } from '../src/data/db';
-import { createFolder, moveDocument, setDocumentLocked } from '../src/data/folders';
+import { createFolder, moveDocument, setDocumentLocked, setFolderLocked } from '../src/data/folders';
 import { addAnnotation, listAnnotations, saveSignature, listSignatures } from '../src/data/annotations';
 import { createDocument, getDocument, listDocuments } from '../src/data/library';
 import { savePageOcr } from '../src/data/pageOps';
@@ -50,7 +50,6 @@ async function seed() {
   await savePageOcr(db, got!.pages[0].id, 'Texto con ñ y acentos', 'latin');
   await addAnnotation(db, got!.pages[0].id, { kind: 'draw', color: '#112233', width: 0.01, points: [[0.1, 0.1], [0.2, 0.2]] });
   await saveSignature(db, [[[0, 0], [1, 1]]]);
-  await setDocumentLocked(db, a, true);
   return a;
 }
 
@@ -81,6 +80,25 @@ describe('backup and restore', () => {
     expect((await listSignatures(target)).length).toBe(1);
     const folder = await target.first<{ name: string }>('select f.name from folders f join documents d on d.folder_id = f.id');
     expect(folder?.name).toBe('Casa');
+  });
+
+  it('leaves locked documents, and those inside a locked folder, out of the backup', async () => {
+    const lockedDoc = await createDocument(db, { title: 'Bloqueado', pages: [{ originalPath: 'a.jpg' }] });
+    const inLockedFolder = await createDocument(db, { title: 'En carpeta', pages: [{ originalPath: 'b.jpg' }] });
+    await createDocument(db, { title: 'Abierto', pages: [{ originalPath: 't.jpg' }] });
+    await setDocumentLocked(db, lockedDoc, true);
+    const folder = await createFolder(db, 'Caja fuerte');
+    await moveDocument(db, inLockedFolder, folder);
+    await setFolderLocked(db, folder, true);
+
+    const { sink, bytes } = memorySink();
+    const info = await writeBackup(db, async (p) => disk[p], sink);
+    expect(info.documents).toBe(1);
+
+    const target = await openTestDb();
+    await migrate(target);
+    await restoreBackup(target, chunked(bytes()), async () => 'restored.jpg');
+    expect((await listDocuments(target)).map((d) => d.title)).toEqual(['Abierto']);
   });
 
   it('adds new copies when restoring onto the same data (no id clashes)', async () => {

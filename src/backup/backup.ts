@@ -29,10 +29,19 @@ export interface Sink {
   close(): Promise<void>;
 }
 
+/** What may go into a backup: not in the trash, not locked and not inside a locked folder. The PIN is
+ *  not part of the backup, so a locked document would leave the phone without the lock that protects it. */
+const BACKUP_DOCUMENTS_SQL = `
+  select d.id, d.title, d.folder_id, d.ocr_text, d.created_at, d.updated_at
+    from documents d
+   where d.deleted_at is null
+     and d.locked = 0
+     and coalesce((select f.locked from folders f where f.id = d.folder_id), 0) = 0`;
+
 /** Writes every document (not the trash), its pages' pictures, drawings, tags, folders and signatures.
- *  Settings and the PIN are not included. Pictures go in one at a time, so memory stays small. */
+ *  Settings, the PIN and locked documents are not included. Pictures go in one at a time, so memory stays small. */
 export async function writeBackup(db: Db, readFile: (path: string) => Promise<Uint8Array>, sink: Sink): Promise<{ documents: number; files: number }> {
-  const documents = await db.all<Doc>('select id, title, folder_id, ocr_text, created_at, updated_at from documents where deleted_at is null');
+  const documents = await db.all<Doc>(BACKUP_DOCUMENTS_SQL);
   const ids = new Set(documents.map((d) => d.id));
   const pages = (await db.all<Page>('select * from pages order by document_id, position')).filter((p) => ids.has(p.document_id));
   const pageIds = new Set(pages.map((p) => p.id));
