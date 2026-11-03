@@ -47,3 +47,6 @@ Thumbs.db
 *.temp
 tmp*
 scratch/
+
+# Session transcripts and scratch notes (absolute paths, logs)
+contexto opencode.json
