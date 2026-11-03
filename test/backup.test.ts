@@ -149,11 +149,34 @@ describe('backup and restore', () => {
     expect((await listAnnotations(db, (await getDocument(db, doc.id))!.pages[0].id)).length).toBe(0);
   });
 
+  it('repairs out-of-range values from a hand-edited backup instead of failing the restore', async () => {
+    const data = {
+      app: 'ordo', version: 1, folders: [], tags: [], document_tags: [], signatures: [],
+      documents: [{ id: 'd1', title: 'X', folder_id: null, ocr_text: null, created_at: 'c', updated_at: 'u' }],
+      pages: [{ id: 'p1', document_id: 'd1', position: 0, original_path: 'files/1.jpg', processed_path: 'files/1.jpg', crop_corners: null, filter: 'bogus', rotation: 45, brightness: 9, contrast: -9, ocr_text: null, ocr_language: null, created_at: 'c' }],
+      annotations: [],
+    };
+    const zip = zipSync({ 'data.json': strToU8(JSON.stringify(data)), 'files/1.jpg': jpg });
+    const res = await restoreBackup(db, chunked(zip), async () => 'ok.jpg');
+    expect(res).toEqual({ documents: 1, pages: 1, skippedPages: 0 });
+
+    const [doc] = await listDocuments(db);
+    const page = (await getDocument(db, doc.id))!.pages[0];
+    expect(page.filter).toBe('original');
+    expect(page.rotation).toBe(0);
+    expect(page.brightness).toBe(1);
+    expect(page.contrast).toBe(-1);
+  });
+
   it('a failing insert rolls everything back and reports the saved files so they can be removed', async () => {
     const data = {
       app: 'ordo', version: 1, folders: [], tags: [], document_tags: [], signatures: [],
       documents: [{ id: 'd1', title: 'X', folder_id: null, ocr_text: null, created_at: 'c', updated_at: 'u' }],
-      pages: [{ id: 'p1', document_id: 'd1', position: 0, original_path: 'files/1.jpg', processed_path: 'files/1.jpg', crop_corners: null, filter: 'bogus', rotation: 0, brightness: 0, contrast: 0, ocr_text: null, ocr_language: null, created_at: 'c' }],
+      // Two pages claiming the same position break the unique constraint, which is the point of this test.
+      pages: [
+        { id: 'p1', document_id: 'd1', position: 0, original_path: 'files/1.jpg', processed_path: 'files/1.jpg', crop_corners: null, filter: 'original', rotation: 0, brightness: 0, contrast: 0, ocr_text: null, ocr_language: null, created_at: 'c' },
+        { id: 'p2', document_id: 'd1', position: 0, original_path: 'files/1.jpg', processed_path: 'files/1.jpg', crop_corners: null, filter: 'original', rotation: 0, brightness: 0, contrast: 0, ocr_text: null, ocr_language: null, created_at: 'c' },
+      ],
       annotations: [],
     };
     const zip = zipSync({ 'data.json': strToU8(JSON.stringify(data)), 'files/1.jpg': jpg });

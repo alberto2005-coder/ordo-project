@@ -5,6 +5,10 @@ import { newId } from '../data/library';
 
 export const BACKUP_VERSION = 1;
 const MAX_DATA_BYTES = 64 * 1024 * 1024;
+/** A backup is unpacked one picture at a time; these caps stop a small file from filling the phone. */
+const MAX_FILE_BYTES = 32 * 1024 * 1024;
+const MAX_TOTAL_BYTES = 1024 * 1024 * 1024;
+const MAX_ENTRIES = 20_000;
 
 interface Folder { id: string; name: string; parent_id: string | null; created_at: string; updated_at: string }
 interface Doc { id: string; title: string; folder_id: string | null; ocr_text: string | null; created_at: string; updated_at: string }
@@ -89,6 +93,11 @@ const isStr = (v: unknown): v is string => typeof v === 'string';
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 
+/** A backup can be edited by hand; anything out of range is repaired instead of aborting the whole restore. */
+const FILTERS = new Set(['original', 'enhanced', 'bw', 'gray']);
+const ROTATIONS = [0, 90, 180, 270];
+const slider = (v: unknown) => (isNum(v) ? Math.max(-1, Math.min(1, v)) : 0);
+
 /** Reads a backup made by writeBackup and adds its contents as new documents (new ids, so nothing already on the phone is
  *  touched). Locks are not restored: the PIN is not in the backup. Throws on a file that is not an Ordo backup. */
 export async function restoreBackup(
@@ -100,7 +109,13 @@ export async function restoreBackup(
   let dataJson: Uint8Array | null = null;
   const jobs: Promise<void>[] = [];
   let failure: unknown = null;
+  let total = 0;
+  let entries = 0;
   const unzip = new Unzip((file) => {
+    if (++entries > MAX_ENTRIES) {
+      failure = new Error('backup has too many files');
+      return;
+    }
     const parts: Uint8Array[] = [];
     let size = 0;
     const done = new Promise<void>((resolve) => {
@@ -113,6 +128,17 @@ export async function restoreBackup(
         if (file.name === 'data.json' && size > MAX_DATA_BYTES) {
           failure = new Error('backup data too large');
           return resolve();
+        }
+        if (file.name !== 'data.json') {
+          if (size > MAX_FILE_BYTES) {
+            failure = new Error('backup file too large');
+            return resolve();
+          }
+          total += data.length;
+          if (total > MAX_TOTAL_BYTES) {
+            failure = new Error('backup too large');
+            return resolve();
+          }
         }
         parts.push(data);
         if (final) {
@@ -182,7 +208,7 @@ export async function restoreBackup(
         const doc = docMap.get(p.document_id);
         const orig = saved.get(p.original_path);
         const proc = saved.get(p.processed_path);
-        if (!doc || !orig || !proc || !isNum(p.position)) {
+        if (!doc || !orig || !proc || !Number.isInteger(p.position) || p.position < 0) {
           skipped++;
           continue;
         }
@@ -192,7 +218,21 @@ export async function restoreBackup(
         await db.run(
           `insert into pages (id, document_id, position, original_path, processed_path, crop_corners, filter, rotation, brightness, contrast, ocr_text, ocr_language, created_at)
            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [nid, doc, p.position, orig, proc, isStr(p.crop_corners) ? p.crop_corners : null, p.filter, p.rotation, p.brightness, p.contrast, isStr(p.ocr_text) ? p.ocr_text : null, isStr(p.ocr_language) ? p.ocr_language : null, isStr(p.created_at) ? p.created_at : new Date().toISOString()],
+          [
+            nid,
+            doc,
+            p.position,
+            orig,
+            proc,
+            isStr(p.crop_corners) ? p.crop_corners : null,
+            FILTERS.has(p.filter) ? p.filter : 'original',
+            ROTATIONS.includes(p.rotation) ? p.rotation : 0,
+            slider(p.brightness),
+            slider(p.contrast),
+            isStr(p.ocr_text) ? p.ocr_text : null,
+            isStr(p.ocr_language) ? p.ocr_language : null,
+            isStr(p.created_at) ? p.created_at : new Date().toISOString(),
+          ],
         );
       }
       for (const a of arr(data.annotations) as Ann[]) {
