@@ -19,7 +19,8 @@ export async function importFromGallery(defaultFilter: Filter, onProgress?: (don
       quality: 1,
     });
   } catch (e) {
-    console.error('[Ordo] image picker failed', e);
+    // Only the message: the full error can carry file paths into the device log.
+    console.error('[Ordo] image picker failed', e instanceof Error ? e.message : e);
     return { status: 'error' };
   }
   if (picked.canceled || !picked.assets?.length) return { status: 'cancelled' };
@@ -41,7 +42,7 @@ export async function importFromGallery(defaultFilter: Filter, onProgress?: (don
       pages.push({ originalPath: original, processedPath: processed, filter: processed === original ? 'original' : defaultFilter, crop: crop ?? undefined });
     }
   } catch (e) {
-    console.error('[Ordo] import failed', e);
+    console.error('[Ordo] import failed', e instanceof Error ? e.message : e);
     // Do not leave a half-imported batch on disk.
     removeFiles(created);
     return { status: 'error' };
