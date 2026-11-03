@@ -36,9 +36,9 @@
   - Reordenación intuitiva de páginas y previsualizaciones en alta resolución.
   - Herramientas de dibujo, resaltador, firmas digitales y sellos.
 - 🔒 **Seguridad y Privacidad**:
-  - Protección de documentos o aplicación mediante PIN o Autenticación Biométrica (Huella / Face ID).
-  - Exportación de archivos PDF protegidos con contraseña (cifrado AES).
-  - Almacenamiento local SQLite seguro; tus documentos nunca salen de tu dispositivo sin tu autorización.
+  - Bloqueo de documentos y carpetas con PIN o biometría (huella / Face ID), con reintentos limitados.
+  - Exportación de PDF protegidos con contraseña (AES-256).
+  - Todo se guarda en el teléfono y la app no hace peticiones de red. El bloqueo protege el acceso desde la app: los archivos y la base de datos no están cifrados en reposo.
 - 📤 **Exportación Versátil**:
   - PDF con calidad configurable y metadatos.
   - Documentos Word (.docx) con texto reconocido.
@@ -108,9 +108,9 @@
   - Drag-and-drop page reordering and fast high-res thumbnail rendering.
   - Freehand drawing, highlighter, digital signatures, and stamps.
 - 🔒 **Security & Privacy**:
-  - App and document-level security using PIN and Biometric Authentication (Fingerprint / Face ID).
-  - Password-protected encrypted PDF export.
-  - Local-first architecture backed by SQLite; files never leave your device without explicit action.
+  - Document and folder locks with a PIN or biometrics (fingerprint / Face ID), with limited retries.
+  - Password-protected PDF export (AES-256).
+  - Everything stays on the phone and the app makes no network requests. The lock protects access from inside the app: files and the database are not encrypted at rest.
 - 📤 **Flexible Export Options**:
   - Multi-resolution PDF generation with optional password protection.
   - Microsoft Word (.docx) export with extracted text.
