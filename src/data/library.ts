@@ -57,10 +57,18 @@ export interface Settings {
   auto_crop: number;
 }
 
-/** Local ids. Nothing leaves the phone, so a random v4-style id is enough. */
+/** Local ids. They name files inside the app folder too, so they come from the phone's secure generator;
+ *  Hermes has no randomUUID, but crypto.getRandomValues is there (see src/polyfills.ts). */
 export function newId(): string {
-  const c = (globalThis as { crypto?: { randomUUID?: () => string } }).crypto;
+  const c = (globalThis as { crypto?: { randomUUID?: () => string; getRandomValues?: (b: Uint8Array) => Uint8Array } }).crypto;
   if (c?.randomUUID) return c.randomUUID();
+  if (c?.getRandomValues) {
+    const b = c.getRandomValues(new Uint8Array(16));
+    b[6] = (b[6] & 0x0f) | 0x40; // version 4
+    b[8] = (b[8] & 0x3f) | 0x80; // variant
+    const hex = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (ch) => {
     const r = (Math.random() * 16) | 0;
     return (ch === 'x' ? r : (r & 0x3) | 0x8).toString(16);
@@ -114,15 +122,16 @@ export async function listDocuments(
   }
   const q = opts.query?.trim();
   if (q) {
-    where.push("(d.title like ? escape '\\' or d.ocr_text like ? escape '\\')");
+    where.push("(d.title like ? escape '\\' or d.ocr_text like (case when (d.locked = 0 and coalesce((select f.locked from folders f where f.id = d.folder_id), 0) = 0) then ? else null end) escape '\\')");
     const pat = likePattern(q);
     params.push(pat, pat);
   }
   return db.all<DocumentSummary>(
     `select d.id, d.title, d.folder_id, d.locked, d.created_at, d.updated_at, d.deleted_at,
             (select count(*) from pages p where p.document_id = d.id) as page_count,
-            (select p.processed_path from pages p where p.document_id = d.id
-              order by p.position limit 1) as thumbnail_path,
+            (case when (d.locked or coalesce((select f.locked from folders f where f.id = d.folder_id), 0)) = 1 then null
+                   else (select p.processed_path from pages p where p.document_id = d.id
+                          order by p.position limit 1) end) as thumbnail_path,
             (d.locked or coalesce((select f.locked from folders f where f.id = d.folder_id), 0)) as is_locked
        from documents d
       ${where.length ? 'where ' + where.join(' and ') : ''}

@@ -12,6 +12,7 @@ import {
   reorderPages,
   updateSettings,
 } from '../src/data/library';
+import { setDocumentLocked } from '../src/data/folders';
 import { openTestDb } from './sqljsDb';
 
 let db: Db;
@@ -69,6 +70,19 @@ describe('documents', () => {
     expect(await listDocuments(db, { query: '50%' })).toHaveLength(1);
     expect(await listDocuments(db, { query: '%' })).toHaveLength(1);
     expect(await listDocuments(db, { query: '_' })).toHaveLength(0);
+  });
+
+  it('hides the thumbnail and the recognized text of locked documents', async () => {
+    const id = await createDocument(db, { title: 'Secreto', pages: pages(1) });
+    await db.run('update pages set ocr_text = ? where document_id = ?', ['pasaporte', id]);
+    await db.run('update documents set ocr_text = ? where id = ?', ['pasaporte', id]);
+    await setDocumentLocked(db, id, true);
+
+    const [row] = await listDocuments(db);
+    expect(row.thumbnail_path).toBeNull();
+    expect(await listDocuments(db, { query: 'pasaporte' })).toHaveLength(0);
+    // The title is still searchable, which is what the person sees without unlocking.
+    expect(await listDocuments(db, { query: 'secreto' })).toHaveLength(1);
   });
 
   it('rejects an empty name and trims long ones', async () => {
