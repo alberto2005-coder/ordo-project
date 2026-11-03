@@ -7,9 +7,12 @@ export type PdfImportResult =
   | { status: 'ok'; pages: NewPage[]; title: string; truncated: boolean }
   | { status: 'cancelled' }
   | { status: 'locked' }
+  | { status: 'too-large' }
   | { status: 'error' };
 
 export const MAX_PDF_PAGES = 100;
+/** The native PDF reader works on whatever was picked, so the size is capped before it is handed over. */
+export const MAX_PDF_BYTES = 64 * 1024 * 1024;
 
 /** Lets the person choose a PDF and turns its pages into pictures inside the app.
  *  The text of the PDF is not kept: each page becomes an image, like a scan. PDFs that need a password to open are refused. */
@@ -22,6 +25,7 @@ export async function importPdf(): Promise<PdfImportResult> {
   }
   if (picked.canceled || !picked.assets?.length) return { status: 'cancelled' };
   const asset = picked.assets[0];
+  if (asset.size && asset.size > MAX_PDF_BYTES) return { status: 'too-large' };
   const kept: string[] = [];
   try {
     const rendered = await PdfThumbnail.generateAllPages(asset.uri, { quality: 90, maxWidth: 1600 });

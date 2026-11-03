@@ -77,7 +77,9 @@ export async function buildPdf(images: PageImage[], opts: PdfOptions): Promise<U
     pdf.encrypt({
       userPassword: opts.password,
       ownerPassword: Array.from(rnd, (b) => b.toString(16).padStart(2, '0')).join(''),
-      permissions: { printing: 'highResolution', copying: true, modifying: false, annotating: false },
+      // A password is set to protect the contents, so copying is closed too; the restrictions are
+      // advisory in the PDF standard and only a determined reader can remove them.
+      permissions: { printing: 'highResolution', copying: false, modifying: false, annotating: false },
       algorithm: 'AES-256',
     });
   }

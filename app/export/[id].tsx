@@ -75,6 +75,10 @@ function ExportBody({ id, pageIds }: { id: string; pageIds?: string[] }) {
     const db = await getDb();
     let out: ExportOutcome & { skippedText?: number };
     if (format === 'pdf' || forPrint) {
+      if (!forPrint && password && password.length < 8) {
+        Alert.alert(t('export.passwordShort'));
+        return null;
+      }
       out = await exportDocumentPdf(db, id, {
         quality: settings.export_quality,
         pageSize: settings.pdf_page_size,

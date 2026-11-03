@@ -26,7 +26,7 @@ async function store(pages: NewPage[], target: Target): Promise<string | null> {
     }
     return await createDocument(db, { title: target.title, pages, folderId: target.newIn });
   } catch (e) {
-    console.error('[Ordo] saving pages failed', e);
+    console.error('[Ordo] saving pages failed', e instanceof Error ? e.message : e);
     removeFiles(pages.flatMap((p) => [p.originalPath, p.processedPath ?? p.originalPath]));
     Alert.alert(t('error.generic'));
     return null;
@@ -62,6 +62,10 @@ export async function importPdfInto(target: Target): Promise<string | null> {
   const r = await importPdf();
   if (r.status === 'locked') {
     Alert.alert(t('pdfImport.locked'));
+    return null;
+  }
+  if (r.status === 'too-large') {
+    Alert.alert(t('pdfImport.tooLarge'));
     return null;
   }
   if (r.status === 'error') {
