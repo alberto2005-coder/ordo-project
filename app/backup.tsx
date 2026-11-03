@@ -7,6 +7,7 @@ import { getDb } from '@/data/expoDb';
 import { t, useLang } from '@/i18n';
 import { createBackupFile, restoreBackupFile } from '@/services/backupFiles';
 import { canShare, shareFile } from '@/services/exportPdf';
+import { fileNameFromUri } from '@/services/files';
 import { saveToFolder } from '@/services/save';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -26,7 +27,7 @@ export default function BackupScreen() {
         if (!(await canShare())) return void Alert.alert(t('export.noShare'));
         await shareFile({ uri: r.uri, mime: 'application/zip', uti: 'public.zip-archive' });
       } else {
-        const s = await saveToFolder(r.uri, decodeURIComponent(r.uri.split('/').pop() ?? 'Ordo backup.zip'));
+        const s = await saveToFolder(r.uri, fileNameFromUri(r.uri) || 'Ordo backup.zip');
         if (s.status === 'ok') Alert.alert(t('export.saved'));
         else if (s.status === 'error') Alert.alert(t('export.saveFailed'));
       }

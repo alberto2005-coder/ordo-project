@@ -21,6 +21,7 @@ import {
   shareFile,
   type ExportOutcome,
 } from '@/services/exportPdf';
+import { fileNameFromUri } from '@/services/files';
 import { saveToFolder, saveToGallery, type SaveResult } from '@/services/save';
 import { useApp } from '@/state/store';
 import { useTheme } from '@/theme/ThemeProvider';
@@ -136,7 +137,7 @@ function ExportBody({ id, pageIds }: { id: string; pageIds?: string[] }) {
     guard(async () => {
       const out = await make();
       if (!out) return;
-      report(await saveToFolder(out.uri, decodeURIComponent(out.uri.split('/').pop() ?? 'Ordo')));
+      report(await saveToFolder(out.uri, fileNameFromUri(out.uri) || 'Ordo'));
     });
 
   const saveGallery = () =>

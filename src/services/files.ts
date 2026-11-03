@@ -65,6 +65,16 @@ export async function readBytes(uri: string): Promise<Uint8Array> {
   return new File(uri).bytes();
 }
 
+/** The last part of a file URI, decoded when possible, ready to show as a file name. */
+export function fileNameFromUri(uri: string): string {
+  const last = uri.split('/').pop() ?? '';
+  try {
+    return decodeURIComponent(last);
+  } catch {
+    return last;
+  }
+}
+
 export function safeFileName(name: string): string {
   return name.replace(/[\\/:*?"<>|\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || 'Ordo';
 }
