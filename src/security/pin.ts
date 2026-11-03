@@ -21,7 +21,9 @@ export const FREE_TRIES = 5;
 const BASE_LOCK_MS = 30_000;
 const MAX_LOCK_MS = 60 * 60_000;
 
-export const isValidPin = (pin: string) => /^[0-9]{4,8}$/.test(pin);
+/** A four-digit PIN is ten thousand guesses: new ones need six digits. Records made by older versions still open. */
+const ACCEPTED_PIN = /^[0-9]{4,8}$/;
+export const isValidPin = (pin: string) => /^[0-9]{6,8}$/.test(pin);
 
 const toHex = (b: Uint8Array) => Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 const fromHex = (h: string) => Uint8Array.from(h.match(/../g) ?? [], (x) => parseInt(x, 16));
@@ -49,7 +51,7 @@ export class PinVault {
     private kv: KeyValue,
     private now: () => number = () => Date.now(),
     /** Slow on purpose, so guessing is slow. Tests pass a small number. */
-    private iterations = 50_000,
+    private iterations = 300_000,
   ) {}
 
   private derive(pin: string, salt: Uint8Array, iterations: number) {
@@ -61,7 +63,7 @@ export class PinVault {
   }
 
   async setPin(pin: string): Promise<void> {
-    if (!isValidPin(pin)) throw new Error('PIN must be 4 to 8 digits');
+    if (!isValidPin(pin)) throw new Error('PIN must be 6 to 8 digits');
     const salt = new Uint8Array(16);
     crypto.getRandomValues(salt);
     const hash = this.derive(pin, salt, this.iterations);
@@ -90,7 +92,7 @@ export class PinVault {
     let good = false;
     try {
       const [v, iter, saltHex, hashHex] = record.split('$');
-      if (v === 'v1' && isValidPin(pin)) {
+      if (v === 'v1' && ACCEPTED_PIN.test(pin)) {
         const n = parseInt(iter, 10);
         if (Number.isInteger(n) && n > 0 && n <= 1_000_000) good = sameBytes(this.derive(pin, fromHex(saltHex), n), fromHex(hashHex));
       }
@@ -111,7 +113,7 @@ export class PinVault {
 
   /** Changing or removing the PIN needs the current one. */
   async changePin(current: string, next: string): Promise<VerifyResult> {
-    if (!isValidPin(next)) throw new Error('PIN must be 4 to 8 digits');
+    if (!isValidPin(next)) throw new Error('PIN must be 6 to 8 digits');
     const r = await this.verify(current);
     if (r.ok) await this.setPin(next);
     return r;
