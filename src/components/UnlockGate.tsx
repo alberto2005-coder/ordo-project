@@ -43,7 +43,8 @@ export function UnlockGate({ itemId, onUnlocked }: { itemId: string; onUnlocked:
     if (r.ok) return finish();
     if (r.reason === 'locked') Alert.alert(t('lock.tryAgainIn', { sec: Math.ceil(r.retryInMs / 1000) }));
     else if (r.reason === 'wrong') Alert.alert(t('lock.attemptsLeft', { n: r.attemptsLeft }));
-    else finish(); // no PIN exists any more: nothing to ask for
+    // A missing PIN record must not become a way in: what is locked stays locked until a new PIN is created.
+    else Alert.alert(t('lock.noPinStored'), t('lock.noPinStoredMsg'));
   }
 
   return (
