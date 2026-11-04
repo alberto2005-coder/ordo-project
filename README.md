@@ -59,6 +59,10 @@ La carpeta [docs/](docs/) explica la arquitectura, el modelo de datos, la seguri
 
 Pruebas y tipos: `npm test` y `npm run typecheck`.
 
+### 🐞 Problemas y sugerencias
+
+Si algo no funciona, abre un [issue](https://github.com/alberto2005-coder/ordo-project/issues/new/choose). Incluye la versión que sale al final de Ajustes y los pasos para repetirlo; con eso se puede investigar.
+
 ### 🛠️ Tecnologías
 
 - **Framework**: [React Native](https://reactnative.dev/) (v0.88), [Expo](https://expo.dev/) (SDK 58) con Expo Router incluido en el SDK.
@@ -143,6 +147,10 @@ Published builds live in [Releases](https://github.com/alberto2005-coder/ordo-pr
 The [docs/](docs/) folder covers architecture, data model, security, scanning, export, building and testing. Written in Spanish and English.
 
 Tests and types: `npm test` and `npm run typecheck`.
+
+### 🐞 Bugs and suggestions
+
+If something is broken, open an [issue](https://github.com/alberto2005-coder/ordo-project/issues/new/choose). Include the version shown at the bottom of Settings and the steps to reproduce it; that is what makes it investigable.
 
 ### 🛠️ Tech Stack
 
