@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ordo",
     "slug": "ordo",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "ordo",
     "icon": "./assets/icon.png",
@@ -98,7 +98,8 @@
           "microphonePermission": false,
           "recordAudioAndroid": false
         }
-      ]
+      ],
+      "./plugins/with-release-permissions"
     ],
     "primaryColor": "#5b3a9e",
     "extra": {

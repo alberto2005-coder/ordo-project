@@ -50,3 +50,8 @@ scratch/
 
 # Session transcripts and scratch notes (absolute paths, logs)
 contexto opencode.json
+
+# Firma y artefactos de release
+signing/
+release/
+*.keystore
