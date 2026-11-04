@@ -46,9 +46,19 @@
 - 🌍 **Soporte Multilingüe**:
   - Disponible en Español e Inglés con detección automática o selección manual.
 
+### 📥 Descarga
+
+La versión publicada vive en [Releases](https://github.com/alberto2005-coder/ordo-project/releases): APK firmado, solo `arm64-v8a`, Android 7.0 o superior.
+
+### 📚 Documentación
+
+La carpeta [docs/](docs/) explica la arquitectura, el modelo de datos, la seguridad, el escaneo, la exportación, la compilación y las pruebas. Todo en español e inglés.
+
+Pruebas y tipos: `npm test` y `npm run typecheck`.
+
 ### 🛠️ Tecnologías
 
-- **Framework**: [React Native](https://reactnative.dev/) (v0.88), [Expo](https://expo.dev/) (SDK 58) con Expo Router v4.
+- **Framework**: [React Native](https://reactnative.dev/) (v0.88), [Expo](https://expo.dev/) (SDK 58) con Expo Router incluido en el SDK.
 - **Gestión de Estado**: [Zustand](https://github.com/pmndrs/zustand).
 - **Base de Datos Local**: [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/).
 - **Generación de Documentos**: `@cantoo/pdf-lib`, `docx`, `fflate`.
@@ -58,8 +68,8 @@
 ### 🚀 Instalación y Puesta en Marcha
 
 1. **Requisitos previos**:
-   - [Node.js](https://nodejs.org/) (versión 18 o superior recomendada).
-   - [pnpm](https://pnpm.io/) o [npm].
+   - [Node.js](https://nodejs.org/) 22 LTS (la misma versión que usa la integración continua).
+   - npm: el repositorio trae `package-lock.json`, así que se instala con `npm ci`.
    - Android Studio / Xcode para desarrollo en emuladores o dispositivo físico.
 
 2. **Instalar dependencias**:
@@ -118,9 +128,19 @@
 - 🌍 **Internationalization**:
   - Full support for English and Spanish with automatic locale detection.
 
+### 📥 Download
+
+Published builds live in [Releases](https://github.com/alberto2005-coder/ordo-project/releases): signed APK, `arm64-v8a` only, Android 7.0 or later.
+
+### 📚 Documentation
+
+The [docs/](docs/) folder covers architecture, data model, security, scanning, export, building and testing. Written in Spanish and English.
+
+Tests and types: `npm test` and `npm run typecheck`.
+
 ### 🛠️ Tech Stack
 
-- **Framework**: [React Native](https://reactnative.dev/) (v0.88), [Expo](https://expo.dev/) (SDK 58) with Expo Router v4.
+- **Framework**: [React Native](https://reactnative.dev/) (v0.88), [Expo](https://expo.dev/) (SDK 58) with Expo Router bundled in the SDK.
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand).
 - **Local Persistence**: [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/).
 - **Document Generation**: `@cantoo/pdf-lib`, `docx`, `fflate`.
@@ -130,8 +150,8 @@
 ### 🚀 Getting Started
 
 1. **Prerequisites**:
-   - [Node.js](https://nodejs.org/) (v18+ recommended).
-   - [pnpm](https://pnpm.io/) or [npm].
+   - [Node.js](https://nodejs.org/) 22 LTS (the version CI uses).
+   - npm: the repository ships a `package-lock.json`, so install with `npm ci`.
    - Android Studio / Xcode configured for native development.
 
 2. **Install dependencies**:
