@@ -23,11 +23,11 @@
   - Soporte para cámara con detección y recorte de bordes.
   - Modo escáner continuo / ráfaga (múltiples páginas secuenciales).
   - Modo libro (captura de dos páginas o separación automática).
-  - Cuadrícula de alineación, flash y nivel de horizonte.
+  - Cuadrícula de alineación, flash, linterna y zoom.
 - 🎨 **Filtros y Procesamiento de Imagen**:
   - Filtros optimizados: Color mejorado, Escala de grises, B/N (alto contraste) y Modo Foto.
   - Ajustes de brillo, contraste, saturación, rotación y recorte.
-  - Corrección de curvatura y distorsión de página.
+  - Corrección de perspectiva (enderezado) a partir de las cuatro esquinas.
 - 🔍 **OCR y Reconocimiento de Texto**:
   - Detección de texto rápida y precisa integrada con Google ML Kit.
   - Copia de texto directo al portapapeles o exportación a Word (.docx).
@@ -35,6 +35,8 @@
   - Organización por carpetas, documentos y páginas.
   - Reordenación intuitiva de páginas y previsualizaciones en alta resolución.
   - Herramientas de dibujo, resaltador, firmas digitales y sellos.
+  - Etiquetas, búsqueda por título y por el texto reconocido (lo bloqueado no se busca).
+  - Papelera de 30 días y copia de seguridad en un ZIP, que deja fuera lo bloqueado.
 - 🔒 **Seguridad y Privacidad**:
   - Bloqueo de documentos y carpetas con PIN o biometría (huella / Face ID), con reintentos limitados.
   - Exportación de PDF protegidos con contraseña (AES-256).
@@ -42,7 +44,8 @@
 - 📤 **Exportación Versátil**:
   - PDF con calidad configurable y metadatos.
   - Documentos Word (.docx) con texto reconocido.
-  - Archivos comprimidos (.zip) con imágenes en calidad original.
+  - Hojas de cálculo (.xlsx) y presentaciones (.pptx) hechas con las páginas.
+  - Archivos comprimidos (.zip) con las imágenes en la calidad elegida.
 - 🌍 **Soporte Multilingüe**:
   - Disponible en Español e Inglés con detección automática o selección manual.
 
@@ -105,11 +108,11 @@ Pruebas y tipos: `npm test` y `npm run typecheck`.
   - Camera support with automatic edge detection and perspective crop.
   - Continuous / batch capture mode for high-volume multi-page scanning.
   - Book scanning mode with automatic dual-page splitting.
-  - Alignment grid, flash control, and artificial horizon guide.
+  - Alignment grid, flash, torch and zoom.
 - 🎨 **Image Enhancement & Filters**:
   - Document-optimized presets: Enhanced Color, Grayscale, Clean B&W, and Photo mode.
   - Fine-grained controls for brightness, contrast, saturation, rotation, and cropping.
-  - Page curvature correction and deskewing.
+  - Perspective correction (deskewing) from the four corners.
 - 🔍 **OCR & Text Recognition**:
   - Fast, accurate on-device text recognition powered by Google ML Kit.
   - Copy recognized text directly to clipboard or export to Word (.docx).
@@ -117,6 +120,8 @@ Pruebas y tipos: `npm test` y `npm run typecheck`.
   - Hierarchical structure with folders, documents, and individual pages.
   - Drag-and-drop page reordering and fast high-res thumbnail rendering.
   - Freehand drawing, highlighter, digital signatures, and stamps.
+  - Tags, search by title and by recognised text (locked items are not searched).
+  - A 30-day trash and a ZIP backup that leaves locked items out.
 - 🔒 **Security & Privacy**:
   - Document and folder locks with a PIN or biometrics (fingerprint / Face ID), with limited retries.
   - Password-protected PDF export (AES-256).
@@ -124,7 +129,8 @@ Pruebas y tipos: `npm test` y `npm run typecheck`.
 - 📤 **Flexible Export Options**:
   - Multi-resolution PDF generation with optional password protection.
   - Microsoft Word (.docx) export with extracted text.
-  - ZIP archives containing original or processed images.
+  - Spreadsheets (.xlsx) and slide decks (.pptx) built from the pages.
+  - ZIP archives containing the images at the chosen quality.
 - 🌍 **Internationalization**:
   - Full support for English and Spanish with automatic locale detection.
 
