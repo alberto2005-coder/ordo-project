@@ -80,10 +80,13 @@ jobs:
 
       - name: Publicar la release
         if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
-            gh release create "$GITHUB_REF_NAME" --title "Ordo ${GITHUB_REF_NAME#v}" --generate-notes
-          gh release upload "$GITHUB_REF_NAME" "$APK" "$APK.sha256" --clobber
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ github.token }}
+          tag_name: ${{ github.ref_name }}
+          name: Ordo ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            ${{ env.APK }}
+            ${{ env.APK }}.sha256
+          fail_on_unmatched_files: true
