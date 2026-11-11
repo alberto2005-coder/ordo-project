@@ -5,19 +5,26 @@
   <i>Smart document scanner and manager for mobile</i>
 </p>
 
-<p align="center">
-  <a href="#español">Español</a> •
-  <a href="#english">English</a>
-</p>
+[Español](#español) · [English](#english)
 
 ---
 
 <a name="español"></a>
-## 🇪🇸 Español
+## Español
+
+### Índice
+
+1. [Características Principales](#características-principales)
+2. [Descarga](#descarga)
+3. [Documentación](#documentación)
+4. [Problemas y sugerencias](#problemas-y-sugerencias)
+5. [Tecnologías](#tecnologías)
+6. [Instalación y Puesta en Marcha](#instalación-y-puesta-en-marcha)
+7. [Licencia](#licencia)
 
 **ORDO** es una aplicación móvil moderna de escaneo, organización y exportación de documentos creada con **React Native** y **Expo**. Diseñada para ofrecer una experiencia fluida, rápida y segura, permite digitalizar documentos físicos, procesar imágenes, extraer texto mediante OCR y generar archivos en múltiples formatos (PDF, DOCX, ZIP).
 
-### ✨ Características Principales
+### Características Principales
 
 - 📸 **Escaneo Avanzado e Inteligente**:
   - Soporte para cámara con detección y recorte de bordes.
@@ -49,21 +56,21 @@
 - 🌍 **Soporte Multilingüe**:
   - Disponible en Español e Inglés con detección automática o selección manual.
 
-### 📥 Descarga
+### Descarga
 
 La versión publicada vive en [Releases](https://github.com/alberto2005-coder/ordo-project/releases): APK firmado, solo `arm64-v8a`, Android 7.0 o superior.
 
-### 📚 Documentación
+### Documentación
 
 La carpeta [docs/](docs/) explica la arquitectura, el modelo de datos, la seguridad, el escaneo, la exportación, la compilación y las pruebas. Todo en español e inglés.
 
 Pruebas y tipos: `npm test` y `npm run typecheck`.
 
-### 🐞 Problemas y sugerencias
+### Problemas y sugerencias
 
 Si algo no funciona, abre un [issue](https://github.com/alberto2005-coder/ordo-project/issues/new/choose). Incluye la versión que sale al final de Ajustes y los pasos para repetirlo; con eso se puede investigar.
 
-### 🛠️ Tecnologías
+### Tecnologías
 
 - **Framework**: [React Native](https://reactnative.dev/) (v0.88), [Expo](https://expo.dev/) (SDK 58) con Expo Router incluido en el SDK.
 - **Gestión de Estado**: [Zustand](https://github.com/pmndrs/zustand).
@@ -72,7 +79,7 @@ Si algo no funciona, abre un [issue](https://github.com/alberto2005-coder/ordo-p
 - **Visión / OCR**: `@react-native-ml-kit/text-recognition`, `react-native-document-scanner-plugin`.
 - **UI / Iconos**: Lucide Icons (`lucide-react-native`), React Native SVG, React Native Gesture Handler.
 
-### 🚀 Instalación y Puesta en Marcha
+### Instalación y Puesta en Marcha
 
 1. **Requisitos previos**:
    - [Node.js](https://nodejs.org/) 22 LTS (la misma versión que usa la integración continua).
@@ -101,12 +108,27 @@ Si algo no funciona, abre un [issue](https://github.com/alberto2005-coder/ordo-p
 
 ---
 
+### Licencia
+
+Este proyecto se distribuye bajo la **licencia MIT**. Consulta [LICENSE](LICENSE).
+
+---
+
 <a name="english"></a>
-## 🇬🇧 English
+## English
+
+### Table of contents
+
+1. [Key Features](#key-features)
+2. [Download](#download)
+3. [Documentation](#documentation)
+4. [Bugs and suggestions](#bugs-and-suggestions)
+5. [Tech Stack](#tech-stack)
+6. [Getting Started](#getting-started)
 
 **ORDO** is a modern, high-performance mobile document scanner and organizer built with **React Native** and **Expo**. Built for speed, precision, and privacy, ORDO turns your phone into a portable scanner with full on-device processing, OCR, and versatile multi-format export capabilities.
 
-### ✨ Key Features
+### Key Features
 
 - 📸 **Advanced & Smart Scanning**:
   - Camera support with automatic edge detection and perspective crop.
@@ -138,21 +160,21 @@ Si algo no funciona, abre un [issue](https://github.com/alberto2005-coder/ordo-p
 - 🌍 **Internationalization**:
   - Full support for English and Spanish with automatic locale detection.
 
-### 📥 Download
+### Download
 
 Published builds live in [Releases](https://github.com/alberto2005-coder/ordo-project/releases): signed APK, `arm64-v8a` only, Android 7.0 or later.
 
-### 📚 Documentation
+### Documentation
 
 The [docs/](docs/) folder covers architecture, data model, security, scanning, export, building and testing. Written in Spanish and English.
 
 Tests and types: `npm test` and `npm run typecheck`.
 
-### 🐞 Bugs and suggestions
+### Bugs and suggestions
 
 If something is broken, open an [issue](https://github.com/alberto2005-coder/ordo-project/issues/new/choose). Include the version shown at the bottom of Settings and the steps to reproduce it; that is what makes it investigable.
 
-### 🛠️ Tech Stack
+### Tech Stack
 
 - **Framework**: [React Native](https://reactnative.dev/) (v0.88), [Expo](https://expo.dev/) (SDK 58) with Expo Router bundled in the SDK.
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand).
@@ -161,7 +183,7 @@ If something is broken, open an [issue](https://github.com/alberto2005-coder/ord
 - **Vision / OCR**: `@react-native-ml-kit/text-recognition`, `react-native-document-scanner-plugin`.
 - **UI & Icons**: Lucide Icons (`lucide-react-native`), React Native SVG, React Native Gesture Handler.
 
-### 🚀 Getting Started
+### Getting Started
 
 1. **Prerequisites**:
    - [Node.js](https://nodejs.org/) 22 LTS (the version CI uses).
@@ -190,7 +212,7 @@ If something is broken, open an [issue](https://github.com/alberto2005-coder/ord
 
 ---
 
-### 📄 License
+### License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see [LICENSE](LICENSE).
 
